@@ -1,8 +1,8 @@
 package userInterface;
-import java.io.File;
+//import java.io.File;
 import java.io.IOException;
 
-import javax.swing.JFileChooser;
+//import javax.swing.JFileChooser;
 
 import javaBackend.DataConverter;
 import javaBackend.ILPFormulation;
