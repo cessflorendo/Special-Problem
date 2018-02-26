@@ -11,7 +11,7 @@ private RConnection c;
 	
 	public RConnector() {
 		startRConnection();
-		loadLibraries();
+		//loadLibraries();
 	}
 	
 	public void loadLibraries() {
@@ -57,7 +57,7 @@ private RConnection c;
 				System.out.println("Connected to Rserve");
 			} catch (RserveException e) {
 				// TODO Auto-generated catch block
-				//e.printStackTrace();
+				e.printStackTrace();
 				System.out.println("Ui Rserve Exception");
 			} 
 		}

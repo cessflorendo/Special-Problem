@@ -1,2 +1,5 @@
 library(Rserve)
+library(RSclient)
 Rserve(port=6311)
+rsc <- RSconnect(port=6311)
+library(png)

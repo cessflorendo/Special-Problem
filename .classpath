@@ -3,7 +3,7 @@
 	<classpathentry kind="src" path="src"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-1.8"/>
 	<classpathentry kind="src" path="/hierarchical-clustering-java"/>
-	<classpathentry kind="lib" path="C:/Users/Cess/workspace/RTrial/lib/REngine.jar"/>
-	<classpathentry kind="lib" path="C:/Users/Cess/workspace/RTrial/lib/RserveEngine.jar"/>
+	<classpathentry kind="lib" path="C:/Users/Cess/Documents/R/win-library/3.3/Rserve/java/REngine.jar"/>
+	<classpathentry kind="lib" path="C:/Users/Cess/Documents/R/win-library/3.3/Rserve/java/Rserve.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
