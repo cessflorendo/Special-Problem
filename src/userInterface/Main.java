@@ -2,10 +2,13 @@ package userInterface;
 //import java.io.File;
 import java.io.IOException;
 
+import org.rosuda.REngine.Rserve.RConnection;
+
 //import javax.swing.JFileChooser;
 
 import javaBackend.DataConverter;
 import javaBackend.ILPFormulation;
+import rBackend.RConnector;
 
 public class Main {
 
@@ -32,6 +35,14 @@ public class Main {
 	    
 	    ILPFormulation solve = new ILPFormulation(dc.getGenomes(), dc.getGenes(), additionalGeneWeight, missingGeneWeight, sizeRangeLower, sizeRangeHigher, maxGapSize, rWindowSize, basicFormulation, commonIntervals, maxGap, rWindows);
 	    solve.generateGeneSets();
+	    
+	     System.out.println("result="+RConnector.checkLocalRserve());
+		try {
+			RConnection c=new RConnection();
+			
+			c.shutdown();
+		} catch (Exception x) {
+		};
 	}
 
 }
