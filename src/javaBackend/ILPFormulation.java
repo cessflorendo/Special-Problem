@@ -1,6 +1,8 @@
 package javaBackend;
 import java.util.ArrayList;
 
+import org.rosuda.REngine.Rserve.RConnection;
+
 public class ILPFormulation {
 	private ArrayList<Genome> genomes;
 	private ArrayList<Gene> genes;
@@ -102,7 +104,42 @@ public class ILPFormulation {
 		return allPartitions;
 	}
 	
-	public void solve(){
+	public void solve(RConnection c){
+		try {
+			for(int i=0; i<referenceGeneSet.size(); i++){
+				for(int j=0; j<genomes.size(); j++){
+					
+				}
+			}
+			/*
+			StringBuilder command = new StringBuilder("");
+			command.append("library(lpSolve)");
+			command.append("\n");
+			command.append("d = 'min'");
+			command.append("\n");
+			command.append("obj = c(-2,-3)");
+			command.append("\n");
+			command.append("mat = matrix(c(2/9,1/4,1/7,1/3), nrow = 2, byrow = TRUE)");
+			command.append("\n");
+			command.append("dir = c('<=', '<=')");
+			command.append("\n");
+			command.append("rhs = c(1,1)");
+			command.append("\n");
+			command.append("result = lp(d, obj, mat, dir, rhs, all.int = TRUE)");
+			command.append("\n");
+			command.append("result$solution");
+			command.append("\n");
+			//System.out.println(command);
+			int[] result = c.eval(command.toString()).asIntegers();
+			//System.out.println(result.length);
+			for(int i=0; i<result.length; i++){
+				System.out.println(result[i]);
+			}
+			*/
+		} catch (Exception x) {
+			System.out.println("R code error: "+x.getMessage());
+		};
+		
 		for(int i=0; i<referenceGeneSet.size(); i++){
 			for(int j=0; j<genomes.size(); j++){
 				

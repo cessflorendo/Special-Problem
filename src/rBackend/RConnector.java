@@ -14,6 +14,7 @@ public class RConnector {
 	 @return <code>true</code> if Rserve is running or was successfully started, <code>false</code> otherwise.
 	 */
 	public static boolean launchRserve(String cmd, String rargs, String rsrvargs, boolean debug) {
+		if (isRserveRunning()) return true;
 		try {
 			Process p;
 			boolean isWindows = false;
