@@ -43,7 +43,7 @@ public class Main {
 			//library(Rglpk)
 			
 			StringBuilder command = new StringBuilder("");
-			command.append("library(Rglpk)");
+			command.append("library(lpSolve)");
 			command.append("\n");
 			command.append("obj = c(2,4,3)");
 			command.append("\n");
