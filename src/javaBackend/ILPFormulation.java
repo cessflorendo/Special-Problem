@@ -52,7 +52,7 @@ public class ILPFormulation {
 			ArrayList<GeneSet> partitions = partitionList(genomes.get(i), this.maxGapSize, this.sizeRangeLower, this.sizeRangeHigher);
 			referenceGeneSet.addAll(partitions);
 			intervals.add(partitions);
-		} //printPartitions(referenceGeneSet);
+		} printPartitions(referenceGeneSet);
 		printIntervals();
 		//printGenes();
 	}
@@ -73,13 +73,11 @@ public class ILPFormulation {
 					if(list.get(j)!=0 && gapCounter <= maxgap){
 						genes.add(genome.getGene(j));
 						continue;
-					}
-					else if(list.get(j) == 0 && gapCounter < maxgap){
+					} else if(list.get(j) == 0 && gapCounter < maxgap){
 						genes.add(genome.getGene(j));
 						gapCounter++;
 						continue;
-					} 
-					else {
+					} else {
 						break;
 					}
 				}
@@ -90,14 +88,12 @@ public class ILPFormulation {
 						genes.add(genome.getGene(j));
 						allPartitions.add(new GeneSet(new ArrayList<Gene>(genes), this.genes));
 						continue;
-					}
-					else if(list.get(j) == 0 && gapCounter < maxgap){
+					} else if(list.get(j) == 0 && gapCounter < maxgap){
 						genes.add(genome.getGene(j));
 						allPartitions.add(new GeneSet(new ArrayList<Gene>(genes), this.genes));
 						gapCounter++;
 						continue;
-					} 
-					else {
+					} else {
 						break;
 					}
 				}
@@ -107,18 +103,28 @@ public class ILPFormulation {
 	}
 	
 	public void solve(){
+		for(int i=0; i<referenceGeneSet.size(); i++){
+			for(int j=0; j<genomes.size(); j++){
+				
+			}
+		}
 	}
 	
-	/*
 	private void printPartitions(ArrayList<GeneSet> allPartitions){
-		System.out.println("---------");
+		System.out.println("---------PARTITIONS FOR REFERENCE GENE SET---------");
+		for(int i=0; i<genes.size(); i++){
+			System.out.print(genes.get(i).getGeneNumberRep()+ " ");
+		} System.out.println();
 		for(int i=0; i<allPartitions.size(); i++){
 			allPartitions.get(i).print();
 		}
-	}*/
+		
+		System.out.println("-----------------------END-------------------------");
+		System.out.println();
+	}
 	
 	private void printIntervals(){
-		System.out.println("------INTERVALS------");
+		System.out.println("---------------------INTERVALS---------------------");
 		for(int i=0; i<intervals.size(); i++){
 			System.out.println("GENOME # " + (i+1));
 			for(int j=0; j<intervals.get(i).size(); j++){

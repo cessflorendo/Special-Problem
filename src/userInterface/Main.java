@@ -26,7 +26,7 @@ public class Main {
 	    dc.replaceNonHomologs();
 	    dc.printAllConvertedGenomes();
 	    int additionalGeneWeight = 1, missingGeneWeight = 1;
-	    int sizeRangeLower = 2, sizeRangeHigher = 4;
+	    int sizeRangeLower = 4, sizeRangeHigher = 4;
 	    int maxGapSize = 0, rWindowSize = 0;
 	    boolean basicFormulation = false;
 	    boolean commonIntervals = false;
@@ -36,10 +36,29 @@ public class Main {
 	    ILPFormulation solve = new ILPFormulation(dc.getGenomes(), dc.getGenes(), additionalGeneWeight, missingGeneWeight, sizeRangeLower, sizeRangeHigher, maxGapSize, rWindowSize, basicFormulation, commonIntervals, maxGap, rWindows);
 	    solve.generateGeneSets();
 	    
-	     System.out.println("result="+RConnector.checkLocalRserve());
+	    System.out.println("result="+RConnector.checkLocalRserve());
 		try {
 			RConnection c=new RConnection();
+			//import
+			//library(Rglpk)
 			
+			StringBuilder command = new StringBuilder("");
+			command.append("library(Rglpk)");
+			command.append("\n");
+			command.append("obj = c(2,4,3)");
+			command.append("\n");
+			command.append("mat = matrix(c(3,2,1,4,1,3,2,2,2), nrow = 3, byrow = TRUE)");
+			command.append("\n");
+			command.append("dir = c('<=', '<=', '<=')");
+			command.append("\n");
+			command.append("rhs - c(60, 40, 80)");
+			command.append("\n");
+			command.append("Rglpk_solve_LP(obj, mat, dir, rhs, max=FALSE)");
+			command.append("\n");
+			double[][] result = c.eval(command.toString()).asDoubleMatrix();
+			for(int i=0; i<result.length; i++){
+				System.out.println(result[i][0]);
+			}
 			c.shutdown();
 		} catch (Exception x) {
 		};
