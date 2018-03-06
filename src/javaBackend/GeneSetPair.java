@@ -9,7 +9,7 @@ public class GeneSetPair {
 	public GeneSetPair(GeneSet set1, GeneSet set2){
 		this.set1 = set1;
 		this.set2 = set2;
-		setIntersection();
+		//setIntersection();
 	}
 	
 	public GeneSet getSet1() {
@@ -25,6 +25,7 @@ public class GeneSetPair {
 		this.set2 = set2;
 	}
 	
+	/*
 	public void setIntersection() {
 		this.intersection = new ArrayList<Integer>();
 		ArrayList<Integer> binGeneSet1 = set1.getBinGeneContent();
@@ -34,7 +35,7 @@ public class GeneSetPair {
 				intersection.add(binGeneSet1.get(i));
 			} else intersection.add(0);
 		}
-	}
+	}*/
 	
 	public ArrayList<Integer> getIntersection(){
 		return this.intersection;

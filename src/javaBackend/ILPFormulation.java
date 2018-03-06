@@ -153,7 +153,8 @@ public class ILPFormulation {
 			System.out.print(genes.get(i).getGeneNumberRep()+ " ");
 		} System.out.println();
 		for(int i=0; i<allPartitions.size(); i++){
-			allPartitions.get(i).print();
+			//allPartitions.get(i).print();
+			System.out.println(allPartitions.get(i));
 		}
 		
 		System.out.println("-----------------------END-------------------------");
@@ -165,7 +166,8 @@ public class ILPFormulation {
 		for(int i=0; i<intervals.size(); i++){
 			System.out.println("GENOME # " + (i+1));
 			for(int j=0; j<intervals.get(i).size(); j++){
-				intervals.get(i).get(j).print();
+				//intervals.get(i).get(j).toString();
+				System.out.println(intervals.get(i).get(j));
 			} System.out.println();
 		}
 	}
