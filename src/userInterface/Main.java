@@ -25,7 +25,7 @@ public class Main {
 	    //dc.printAllConvertedGenomes();
 	    dc.replaceNonHomologs();
 	    dc.printAllConvertedGenomes();
-	    int additionalGeneWeight = 1, missingGeneWeight = 1;
+	    int additionalGeneWeight = 2, missingGeneWeight = 1;
 	    int sizeRangeLower = 4, sizeRangeHigher = 4;
 	    int maxGapSize = 0, rWindowSize = 0;
 	    boolean basicFormulation = false;

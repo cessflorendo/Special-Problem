@@ -59,9 +59,9 @@ public class GeneSet {
 		this.strRep = "";
 		for(int i=0; i<allGenes.size(); i++){
 			if(geneContent.contains(allGenes.get(i).getGeneNumberRep())){
-				this.strRep += "1 ";
+				this.strRep += "1,";
 			} else {
-				this.strRep += "0 ";
+				this.strRep += "0,";
 			}
 		}
 		this.strRep = this.strRep.substring(0, strRep.length() - 1);

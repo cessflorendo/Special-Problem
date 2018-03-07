@@ -107,10 +107,29 @@ public class ILPFormulation {
 	public void solve(RConnection c){
 		try {
 			for(int i=0; i<referenceGeneSet.size(); i++){
-				for(int j=0; j<genomes.size(); j++){
+				//store cost per reference gene set
+				System.out.println("Reference Gene # " + (i+1));
+				for(int j=0; j<intervals.size(); j++){
+					System.out.println("Genome # " + (j+1));
+					for(int k=0; k<intervals.get(j).size(); k++){
+						StringBuilder command = new StringBuilder("");
+						command.append("refset = c(" + referenceGeneSet.get(i).toString() + ")\n");
+						command.append("interval = c(" + intervals.get(j).get(k).toString() + ")\n");
+						command.append("intersection = refset-interval\n");
+						command.append("missing = " + this.missingGeneWeight + "* sum(intersection==1)\n");
+						int missingGenes = c.eval(command.toString()).asInteger();
+						command.append("additional = " + this.additionalGeneWeight + "* sum(intersection==-1)\n");
+						int additionalGenes = c.eval(command.toString()).asInteger();
+						System.out.println("Missing: " + missingGenes + "\tAdditional: " + additionalGenes);
+					}
 					
-				}
+				} System.out.println();
 			}
+			/*
+			StringBuilder command = new StringBuilder("");
+			command.append("matrix1 = " + referenceGeneSet.get(0) + "\n");
+			command.append()
+			*/
 			/*
 			StringBuilder command = new StringBuilder("");
 			command.append("library(lpSolve)");
