@@ -106,7 +106,9 @@ public class ILPFormulation {
 	
 	public void solve(RConnection c){
 		try {
+			int[] costs = new int[referenceGeneSet.size()]; 
 			for(int i=0; i<referenceGeneSet.size(); i++){
+				
 				//store cost per reference gene set
 				System.out.println("Reference Gene # " + (i+1));
 				for(int j=0; j<intervals.size(); j++){
@@ -116,45 +118,20 @@ public class ILPFormulation {
 						command.append("refset = c(" + referenceGeneSet.get(i).toString() + ")\n");
 						command.append("interval = c(" + intervals.get(j).get(k).toString() + ")\n");
 						command.append("intersection = refset-interval\n");
-						command.append("missing = " + this.missingGeneWeight + "* sum(intersection==1)\n");
-						int missingGenes = c.eval(command.toString()).asInteger();
-						command.append("additional = " + this.additionalGeneWeight + "* sum(intersection==-1)\n");
-						int additionalGenes = c.eval(command.toString()).asInteger();
-						System.out.println("Missing: " + missingGenes + "\tAdditional: " + additionalGenes);
+						//command.append("missing = " + this.missingGeneWeight + "* sum(intersection==1)\n");
+						//int missingGenes = c.eval(command.toString()).asInteger();
+						//command.append("additional = " + this.additionalGeneWeight + "* sum(intersection==-1)\n");
+						//int additionalGenes = c.eval(command.toString()).asInteger();
+						command.append("cost = (" + this.missingGeneWeight + "*sum(intersection==1)) + (" + this.additionalGeneWeight + "*sum(intersection==-1))\n");
+						int cost = c.eval(command.toString()).asInteger();
+						//System.out.println(command);
+						System.out.println("Cost: " + cost);
+						
 					}
 					
 				} System.out.println();
 			}
-			/*
-			StringBuilder command = new StringBuilder("");
-			command.append("matrix1 = " + referenceGeneSet.get(0) + "\n");
-			command.append()
-			*/
-			/*
-			StringBuilder command = new StringBuilder("");
-			command.append("library(lpSolve)");
-			command.append("\n");
-			command.append("d = 'min'");
-			command.append("\n");
-			command.append("obj = c(-2,-3)");
-			command.append("\n");
-			command.append("mat = matrix(c(2/9,1/4,1/7,1/3), nrow = 2, byrow = TRUE)");
-			command.append("\n");
-			command.append("dir = c('<=', '<=')");
-			command.append("\n");
-			command.append("rhs = c(1,1)");
-			command.append("\n");
-			command.append("result = lp(d, obj, mat, dir, rhs, all.int = TRUE)");
-			command.append("\n");
-			command.append("result$solution");
-			command.append("\n");
-			//System.out.println(command);
-			int[] result = c.eval(command.toString()).asIntegers();
-			//System.out.println(result.length);
-			for(int i=0; i<result.length; i++){
-				System.out.println(result[i]);
-			}
-			*/
+			
 		} catch (Exception x) {
 			System.out.println("R code error: "+x.getMessage());
 		};

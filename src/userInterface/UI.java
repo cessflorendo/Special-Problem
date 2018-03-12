@@ -1,13 +1,20 @@
 package userInterface;
 
+import java.awt.BorderLayout;
+import java.awt.Color;
 import java.awt.Dimension;
+import java.awt.GridBagLayout;
 
 import javax.swing.JButton;
+import javax.swing.JCheckBox;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
+import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTabbedPane;
+import javax.swing.JTextArea;
 import javax.swing.JTextField;
+import javax.swing.border.Border;
 
 import net.miginfocom.swing.MigLayout;
 
@@ -22,9 +29,6 @@ public class UI {
 	
 	
 	private JTabbedPane displayPane;
-	
-	private JButton chooseFileButton;
-	private JTextField fileNameField;
 	private JFileChooser chooser;
 	
 	public UI(){
@@ -39,33 +43,54 @@ public class UI {
 		frame.getContentPane().setLayout(new MigLayout("","[grow]","[grow]"));
 		
 		displayPane = new JTabbedPane(JTabbedPane.TOP);
-		frame.getContentPane().add(displayPane, "cell 0 0,grow");		
+		frame.getContentPane().add(displayPane, "cell 0 0, grow");		
 
 		inputPanel = new JPanel();
 		displayPane.addTab("Input Data", inputPanel);
-		inputPanel.setLayout(new MigLayout("", "[grow]", "[grow]"));
+		inputPanel.setLayout(new MigLayout("wrap 2", "[][grow]", "[][grow][]"));
 		{
-			fileInputPanel = new JPanel();
-			inputPanel.add(fileInputPanel, "cell 0 0, grow");
-			fileInputPanel.setLayout(new MigLayout("", "grow", "grow 30"));
-			{
-				chooseFileButton = new JButton();
-				chooseFileButton.setText("Open File");
-				fileInputPanel.add(chooseFileButton, "wrap");
-				
-				fileNameField = new JTextField();
-				fileInputPanel.add(fileNameField, "grow");
-			}
+			JButton openFileButton = new JButton();
+			openFileButton.setText("Open CSV File");
+			inputPanel.add(openFileButton);
 			
-			transformedDataPanel = new JPanel();
-			inputPanel.add(fileInputPanel, "grow");
-			transformedDataPanel.setLayout(new MigLayout("", "grow", "grow"));
+			JTextField fileNameTextField = new JTextField();
+			fileNameTextField.setText("Open CSV dfjsadfjkdgfkfkjsdhgf");
+			inputPanel.add(fileNameTextField, "growx, span");
 			
+			JTextField preview = new JTextField();
+			inputPanel.add(preview, "grow,span");
+			
+			JButton nextButton = new JButton();
+			nextButton.setText("Next");
+			inputPanel.add(nextButton, "tag right, span");
 			
 		}
 		
 		constraintsPanel = new JPanel();
 		displayPane.addTab("Constraints", constraintsPanel);
+		constraintsPanel.setLayout(new MigLayout("", "grow", "[][]"));
+		{
+			JPanel formulation = new JPanel();
+			formulation.setLayout(new MigLayout("", "[grow][grow][grow][grow]", "[][]"));
+			formulation.setBackground(Color.white);
+			constraintsPanel.add(formulation);
+			
+			JLabel formulationLabel = new JLabel();
+			formulationLabel.setText("Choose formulation to use: ");
+			formulation.add(formulationLabel, "growx, span");
+			
+			JCheckBox basic = new JCheckBox("Basic Formulation");
+			formulation.add(basic);
+			
+			JCheckBox commonIntervals = new JCheckBox("Common Intervals");
+			formulation.add(commonIntervals);
+			
+			JCheckBox maxGap = new JCheckBox("Max Gap");
+			formulation.add(maxGap);
+			
+			JCheckBox rWindows = new JCheckBox("r-Windows");
+			formulation.add(rWindows);
+		}
 		
 		resultsPanel = new JPanel();
 		displayPane.addTab("Results",resultsPanel);
