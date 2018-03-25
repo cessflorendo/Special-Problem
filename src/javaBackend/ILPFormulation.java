@@ -105,6 +105,9 @@ public class ILPFormulation {
 	}
 	
 	public void solve(RConnection c){
+		StringBuilder ilp = new StringBuilder("");
+		ilp.append("import.packages(lpSolve)\n");
+		ilp.append("library(lpSolve)\n");
 		try {
 			int[] costs = new int[referenceGeneSet.size()]; 
 			for(int i=0; i<referenceGeneSet.size(); i++){
@@ -125,7 +128,7 @@ public class ILPFormulation {
 						command.append("cost = (" + this.missingGeneWeight + "*sum(intersection==1)) + (" + this.additionalGeneWeight + "*sum(intersection==-1))\n");
 						int cost = c.eval(command.toString()).asInteger();
 						//System.out.println(command);
-						System.out.println("Cost: " + cost);
+						System.out.println("Interval#" + (k+1) + " cost: " + cost);
 						
 					}
 					
