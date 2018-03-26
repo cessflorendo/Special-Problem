@@ -5,6 +5,7 @@ import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
+import java.io.IOException;
 
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
@@ -18,26 +19,21 @@ import javax.swing.JSpinner;
 import javax.swing.JTabbedPane;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
+
+import javaBackend.DataConverter;
 import net.miginfocom.swing.MigLayout;
 
 public class UI {
 	private JFrame frame;
-	//private JPanel menuPanel; 
-	//private JPanel inputPanel;
-	//private JPanel constraintsPanel;
-	//private JPanel resultsPanel;
-	//private JPanel fileInputPanel;
-	//private JPanel transformedDataPanel;
 	private File filename;
-
-
+	//private JTextArea preview;
 	private JTabbedPane displayPane;
-	//private JFileChooser chooser;
 
 	public UI(){
 		initialize();
 	}
 
+	
 	private void initialize(){
 		frame = new JFrame();
 		frame.setTitle("Approximate Gene Cluster Tool");
@@ -57,22 +53,32 @@ public class UI {
 		displayPane.setEnabledAt(2, false);
 		
 		frame.getContentPane().add(displayPane, "cell 0 0, grow");		
-		inputPanel.setLayout(new MigLayout("wrap 2", "[][grow]", "[][grow][]"));
+		inputPanel.setLayout(new MigLayout("wrap 2", "[][grow]", "[][][grow][][grow][]"));
 		{
 			JButton openFileButton = new JButton();
 			JTextField fileNameTextField = new JTextField();
-			JTextArea preview = new JTextArea();
-			JScrollPane previewScr = new JScrollPane(preview);
+			JTextArea previewOriginal = new JTextArea();
+			JScrollPane previewOriginalScr = new JScrollPane(previewOriginal);
+			JTextArea previewConverted = new JTextArea();
+			JScrollPane previewConvertedScr = new JScrollPane(previewConverted);
+			JLabel previewOriginalLabel = new JLabel();
+			JLabel previewConvertedLabel = new JLabel();
+			
 			JButton nextButton = new JButton();
 			
 			openFileButton.setText("Open CSV File");
+			previewOriginalLabel.setText("Original data: ");
+			previewConvertedLabel.setText("Converted data: ");
 			nextButton.setEnabled(false);
 			nextButton.setText("Next");
-			preview.setLineWrap(true);
+			//preview.setLineWrap(true);
 			
 			inputPanel.add(openFileButton);
 			inputPanel.add(fileNameTextField, "growx, span");
-			inputPanel.add(previewScr, "grow, span");		
+			inputPanel.add(previewOriginalLabel, "growx, span");
+			inputPanel.add(previewOriginalScr, "grow, span");
+			inputPanel.add(previewConvertedLabel, "growx, span");
+			inputPanel.add(previewConvertedScr, "grow, span");
 			inputPanel.add(nextButton, "tag right, span");
 			
 			openFileButton.addActionListener(new ActionListener() {
@@ -84,6 +90,15 @@ public class UI {
 				    filename = jfc.getSelectedFile();
 				    fileNameTextField.setText(filename.getAbsolutePath());
 				    nextButton.setEnabled(true);
+				    
+				    try {
+						DataConverter dc = new DataConverter(filename.getAbsolutePath());
+						previewOriginal.setText(dc.getAllGenomes());
+						previewConverted.setText(dc.getAllConvertedGenomes());
+					} catch (IOException e1) {
+						// TODO Auto-generated catch block
+						e1.printStackTrace();
+					}
 					
 				}
 			});
@@ -99,15 +114,16 @@ public class UI {
 			});
 		}
 
-		constraintsPanel.setLayout(new MigLayout("", "[grow]", "[][][]"));
-		constraintsPanel.setBackground(Color.white);
+		constraintsPanel.setLayout(new MigLayout("", "[grow]", "[][][][grow][]"));
+		//constraintsPanel.setBackground(Color.white);
 		JPanel formulation = new JPanel();
 		JLabel formulationLabel = new JLabel();
 		JCheckBox basic = new JCheckBox("Basic Formulation");
 		JCheckBox commonIntervals = new JCheckBox("Common Intervals");
 		JCheckBox maxGap = new JCheckBox("Max Gap");
 		JCheckBox rWindows = new JCheckBox("r-Windows");
-		JSeparator sep = new JSeparator();
+		JSeparator sep1 = new JSeparator();
+		JSeparator sep2 = new JSeparator();
 		JPanel constraints = new JPanel();
 		JLabel contraintsLabel = new JLabel();
 		JLabel sizeRangeLabel = new JLabel();
@@ -124,6 +140,9 @@ public class UI {
 		JPanel buttons = new JPanel();
 		JButton backButton = new JButton();
 		JButton nextButton = new JButton();
+		JTextArea sampleResults = new JTextArea();
+		JLabel sampleResultsLabel = new JLabel();
+		JScrollPane sampleResultsScr = new JScrollPane(sampleResults);
 		
 		from.setEnabled(false);
 		to.setEnabled(false);
@@ -134,11 +153,6 @@ public class UI {
 		
 		{
 			formulation.setLayout(new MigLayout("", "[grow][grow][grow][grow]", "[][]"));
-			formulation.setBackground(Color.white);
-			basic.setBackground(Color.white);
-			commonIntervals.setBackground(Color.white);
-			maxGap.setBackground(Color.white);
-			rWindows.setBackground(Color.white);
 			formulationLabel.setText("Choose formulation to use: ");
 
 			constraintsPanel.add(formulation, "growx, wrap");
@@ -147,7 +161,7 @@ public class UI {
 			formulation.add(commonIntervals, "grow");
 			formulation.add(maxGap, "grow");
 			formulation.add(rWindows, "grow, span");
-			formulation.add(sep, "growx, span");
+			formulation.add(sep1, "growx, span");
 			
 			ActionListener formulationListener = new ActionListener(){
 				@Override
@@ -184,7 +198,6 @@ public class UI {
 		}
 		{
 			constraints.setLayout(new MigLayout("", "[grow][grow][grow]", "[][]"));
-			constraints.setBackground(Color.white);
 			contraintsLabel.setText("Input constraints: ");
 			sizeRangeLabel.setText("Size Range: ");	
 			additionalWeightLabel.setText("Integer Weights (+): ");
@@ -205,10 +218,13 @@ public class UI {
 			constraints.add(gapSize, "grow, span");	
 			constraints.add(rWindowSizeLabel, "tag right");
 			constraints.add(rWindowSize, "grow, span");
+			constraints.add(sep2, "growx, span");
 		}
+		sampleResultsLabel.setText("Sample results: ");
+		constraintsPanel.add(sampleResultsLabel, "grow, span");
+		constraintsPanel.add(sampleResultsScr, "grow, span");
 		{
 			buttons.setLayout(new MigLayout("", "[grow][grow]", "[grow]"));
-			buttons.setBackground(Color.white);
 			backButton.setText("Back");
 			nextButton.setText("Next");
 			
@@ -269,6 +285,7 @@ public class UI {
 	public static void main(String[] args){
 		UI window = new UI();
 		window.frame.setVisible(true);
+		
 	}
 }
 

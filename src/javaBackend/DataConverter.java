@@ -81,6 +81,28 @@ public class DataConverter {
 			allGenomes.get(i).printGenes();
 		}
 	}
+	
+	public String getAllGenomes(){
+		StringBuilder sb = new StringBuilder();
+		for(int i=0; i<allGenomes.size(); i++){
+			sb.append(allGenomes.get(i).getGenomeName() + ": ");
+			for(int j=0; j<allGenomes.get(i).size(); j++){
+				sb.append(allGenomes.get(i).getGene(j).getGeneName() + " ");
+			} sb.append("\n");
+		}
+		return sb.toString();
+	}
+	
+	public String getAllConvertedGenomes(){
+		StringBuilder sb = new StringBuilder();
+		for(int i=0; i<allGenomes.size(); i++){
+			sb.append(allGenomes.get(i).getGenomeName() + ": ");
+			for(int j=0; j<allGenomes.get(i).size(); j++){
+				sb.append(allGenomes.get(i).getGene(j).getGeneNumberRep() + " ");
+			} sb.append("\n");
+		}
+		return sb.toString();
+	}
 
 	public void printAllConvertedGenomes(){
 		for(int i=0; i<allGenomes.size(); i++){
