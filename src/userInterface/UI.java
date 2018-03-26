@@ -62,7 +62,7 @@ public class UI {
 			JButton openFileButton = new JButton();
 			JTextField fileNameTextField = new JTextField();
 			JTextArea preview = new JTextArea();
-			JScrollPane jsp = new JScrollPane(preview);
+			JScrollPane previewScr = new JScrollPane(preview);
 			JButton nextButton = new JButton();
 			
 			openFileButton.setText("Open CSV File");
@@ -72,7 +72,7 @@ public class UI {
 			
 			inputPanel.add(openFileButton);
 			inputPanel.add(fileNameTextField, "growx, span");
-			inputPanel.add(jsp, "grow, span");		
+			inputPanel.add(previewScr, "grow, span");		
 			inputPanel.add(nextButton, "tag right, span");
 			
 			openFileButton.addActionListener(new ActionListener() {
@@ -100,24 +100,47 @@ public class UI {
 		}
 
 		constraintsPanel.setLayout(new MigLayout("", "[grow]", "[][][]"));
+		constraintsPanel.setBackground(Color.white);
+		JPanel formulation = new JPanel();
+		JLabel formulationLabel = new JLabel();
+		JCheckBox basic = new JCheckBox("Basic Formulation");
+		JCheckBox commonIntervals = new JCheckBox("Common Intervals");
+		JCheckBox maxGap = new JCheckBox("Max Gap");
+		JCheckBox rWindows = new JCheckBox("r-Windows");
+		JSeparator sep = new JSeparator();
+		JPanel constraints = new JPanel();
+		JLabel contraintsLabel = new JLabel();
+		JLabel sizeRangeLabel = new JLabel();
+		JSpinner from = new JSpinner();
+		JSpinner to = new JSpinner();
+		JLabel additionalWeightLabel = new JLabel();
+		JSpinner additional = new JSpinner();
+		JLabel missingWeightLabel = new JLabel();
+		JSpinner missing = new JSpinner();
+		JLabel gapSizeLabel = new JLabel();
+		JSpinner gapSize = new JSpinner();
+		JLabel rWindowSizeLabel = new JLabel();
+		JSpinner rWindowSize = new JSpinner();
+		JPanel buttons = new JPanel();
+		JButton backButton = new JButton();
+		JButton nextButton = new JButton();
+		
+		from.setEnabled(false);
+		to.setEnabled(false);
+		missing.setEnabled(false);
+		additional.setEnabled(false);
+		gapSize.setEnabled(false);
+		rWindowSize.setEnabled(false);
+		
 		{
-			JPanel formulation = new JPanel();
-			JLabel formulationLabel = new JLabel();
-			JCheckBox basic = new JCheckBox("Basic Formulation");
-			JCheckBox commonIntervals = new JCheckBox("Common Intervals");
-			JCheckBox maxGap = new JCheckBox("Max Gap");
-			JCheckBox rWindows = new JCheckBox("r-Windows");
-			JSeparator sep = new JSeparator();
-			
 			formulation.setLayout(new MigLayout("", "[grow][grow][grow][grow]", "[][]"));
 			formulation.setBackground(Color.white);
-			formulationLabel.setText("Choose formulation to use: ");	
 			basic.setBackground(Color.white);
 			commonIntervals.setBackground(Color.white);
 			maxGap.setBackground(Color.white);
 			rWindows.setBackground(Color.white);
+			formulationLabel.setText("Choose formulation to use: ");
 
-			
 			constraintsPanel.add(formulation, "growx, wrap");
 			formulation.add(formulationLabel, "growx, span");
 			formulation.add(basic, "grow");
@@ -125,22 +148,41 @@ public class UI {
 			formulation.add(maxGap, "grow");
 			formulation.add(rWindows, "grow, span");
 			formulation.add(sep, "growx, span");
+			
+			ActionListener formulationListener = new ActionListener(){
+				@Override
+				public void actionPerformed(ActionEvent e) {
+					if (basic.isSelected() || commonIntervals.isSelected() || maxGap.isSelected() || rWindows.isSelected()){
+						from.setEnabled(true);
+						to.setEnabled(true);
+						missing.setEnabled(true);
+						additional.setEnabled(true);
+					}
+					else{
+						from.setEnabled(false);
+						to.setEnabled(false);
+						missing.setEnabled(false);
+						additional.setEnabled(false);
+						gapSize.setEnabled(false);
+						rWindowSize.setEnabled(false);
+					}
+					
+					if(maxGap.isSelected()){
+						gapSize.setEnabled(true);
+					} else gapSize.setEnabled(false);
+					
+					if(rWindows.isSelected()){
+						rWindowSize.setEnabled(true);
+					} else rWindowSize.setEnabled(false);
+				}
+			};
+			
+			basic.addActionListener(formulationListener);
+			commonIntervals.addActionListener(formulationListener);
+			maxGap.addActionListener(formulationListener);
+			rWindows.addActionListener(formulationListener);
 		}
 		{
-			JPanel constraints = new JPanel();
-			JLabel contraintsLabel = new JLabel();
-			JLabel sizeRangeLabel = new JLabel();
-			JSpinner from = new JSpinner();
-			JSpinner to = new JSpinner();
-			JLabel additionalWeightLabel = new JLabel();
-			JSpinner additional = new JSpinner();
-			JLabel missingWeightLabel = new JLabel();
-			JSpinner missing = new JSpinner();
-			JLabel gapSizeLabel = new JLabel();
-			JSpinner gapSize = new JSpinner();
-			JLabel rWindowSize = new JLabel();
-			JSpinner rWindow = new JSpinner();
-			
 			constraints.setLayout(new MigLayout("", "[grow][grow][grow]", "[][]"));
 			constraints.setBackground(Color.white);
 			contraintsLabel.setText("Input constraints: ");
@@ -148,7 +190,7 @@ public class UI {
 			additionalWeightLabel.setText("Integer Weights (+): ");
 			missingWeightLabel.setText("Integer Weights (-): ");
 			gapSizeLabel.setText("Gap Size: ");	
-			rWindowSize.setText("r Size: ");
+			rWindowSizeLabel.setText("r Size: ");
 			
 			constraintsPanel.add(constraints, "growx, wrap");
 			constraints.add(contraintsLabel, "growx, span");
@@ -161,14 +203,10 @@ public class UI {
 			constraints.add(missing, "grow, span");
 			constraints.add(gapSizeLabel, "tag right");
 			constraints.add(gapSize, "grow, span");	
-			constraints.add(rWindowSize, "tag right");
-			constraints.add(rWindow, "grow, span");
+			constraints.add(rWindowSizeLabel, "tag right");
+			constraints.add(rWindowSize, "grow, span");
 		}
 		{
-			JPanel buttons = new JPanel();
-			JButton backButton = new JButton();
-			JButton nextButton = new JButton();
-			
 			buttons.setLayout(new MigLayout("", "[grow][grow]", "[grow]"));
 			buttons.setBackground(Color.white);
 			backButton.setText("Back");
@@ -199,9 +237,32 @@ public class UI {
 			});
 		}
 		
-		resultsPanel.setLayout(new MigLayout("", "[grow]", "[grow]"));
+		resultsPanel.setLayout(new MigLayout("", "[grow]", "[grow][]"));
 		{
-
+			JTextArea results = new JTextArea();
+			JScrollPane resultsScr = new JScrollPane(results);
+			JButton back = new JButton();
+			JButton exportPDF = new JButton();
+			JButton exportCSV = new JButton();
+			
+			back.setText("Back");
+			exportPDF.setText("Export PDF");
+			exportCSV.setText("Export CSV");
+			
+			resultsPanel.add(resultsScr, "grow, span");
+			resultsPanel.add(back, "growx");
+			resultsPanel.add(exportPDF, "growx");
+			resultsPanel.add(exportCSV, "growx, span");
+			
+			back.addActionListener(new ActionListener(){
+				@Override
+				public void actionPerformed(ActionEvent e) {
+					displayPane.setEnabledAt(0, false);
+					displayPane.setEnabledAt(1, true);
+					displayPane.setEnabledAt(2, false);
+					displayPane.setSelectedIndex(1);
+				}
+			});
 		}
 	}
 
@@ -210,3 +271,4 @@ public class UI {
 		window.frame.setVisible(true);
 	}
 }
+
