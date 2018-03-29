@@ -110,7 +110,6 @@ public class RConnector {
 		System.out.println("result="+checkLocalRserve());
 		try {
 			RConnection c=new RConnection();
-			
 			c.shutdown();
 		} catch (Exception x) {
 		};
@@ -144,10 +143,11 @@ class StreamHog extends Thread {
 						if (j >= 0)
 							s = s.substring(j + 6).trim();
 						installPath = s;
-						System.out.println("R InstallPath = "+s);
+						System.out.println("R InstallPath = "+s);						
 					}
 				} else 
 					System.out.println("Rserve>" + line);
+				
 			}
 		} catch (IOException e) {
 			e.printStackTrace();
