@@ -25,9 +25,12 @@ import javax.swing.SpinnerNumberModel;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
+import org.rosuda.REngine.Rserve.RConnection;
+
 import javaBackend.DataConverter;
 import javaBackend.ILPFormulation;
 import net.miginfocom.swing.MigLayout;
+import rBackend.RConnector;
 
 public class UI {
 	private JFrame frame;
@@ -114,6 +117,7 @@ public class UI {
 						dc = new DataConverter(filename.getAbsolutePath());
 						previewOriginal.setText(dc.getAllGenomes());
 						previewConverted.setText(dc.getAllConvertedGenomes());
+						dc.replaceNonHomologs();
 					} catch (IOException e1) {
 						// TODO Auto-generated catch block
 						e1.printStackTrace();
@@ -175,7 +179,7 @@ public class UI {
 		additional.setEnabled(false);
 		gapSize.setEnabled(false);
 		rWindowSize.setEnabled(false);
-		nextButton.setEnabled(false);
+		//nextButton.setEnabled(false);
 
 		{
 			formulation.setLayout(new MigLayout("", "[grow][grow][grow][grow]", "[][]"));
@@ -337,13 +341,35 @@ public class UI {
 					displayPane.setEnabledAt(1, false);
 					displayPane.setEnabledAt(2, true);
 					displayPane.setSelectedIndex(2);
+					
+					//System.out.println(dc.getAllGenomes());
+					//System.out.println(dc.getGenes().size());
+					solve = new ILPFormulation(dc.getGenomes(), dc.getGenes(), additionalGeneWeight, missingGeneWeight, sizeRangeLower, sizeRangeHigher, maxGapSize, getrWindowSize(), isBasicFormulation(), isCommonIntervals(), isMaxGap(), isrWindows());
+				    solve.generateGeneSets();
+				    
+				    System.out.println("result="+RConnector.checkLocalRserve());
+					try {
+						RConnection c=new RConnection();
+						solve.solve(c);
+						c.shutdown();
+					} catch (Exception x) {
+						System.out.println("R code error: "+x.getMessage());
+					};
 				}
 			});
 		}
 		
-		this.solve = new ILPFormulation(dc.getGenomes(), dc.getGenes(), additionalGeneWeight, missingGeneWeight, sizeRangeLower, sizeRangeHigher, maxGapSize, this.rWindowSize, basicFormulation, this.commonIntervals, this.maxGap, this.rWindows);
-	    solve.generateGeneSets();
+		
 
+		System.out.println(additionalGeneWeight);
+		System.out.println(missingGeneWeight);
+		System.out.println(sizeRangeHigher);
+		System.out.println(sizeRangeLower);
+		System.out.println(sizeRangeHigher);
+		System.out.println(this.basicFormulation);
+		System.out.println(this.commonIntervals);
+		System.out.println(this.maxGap);
+		System.out.println(this.rWindows);
 		resultsPanel.setLayout(new MigLayout("", "[grow]", "[grow][]"));
 		{
 			JTextArea results = new JTextArea();
@@ -478,5 +504,17 @@ public class UI {
 	public void setrWindowSize(int rWindowSize) {
 		this.rWindowSize = rWindowSize;
 	}
+
+
+	public ILPFormulation getSolve() {
+		return solve;
+	}
+
+
+	public void setSolve(ILPFormulation solve) {
+		this.solve = solve;
+	}
+
+
 }
 
