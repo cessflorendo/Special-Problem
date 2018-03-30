@@ -5,6 +5,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 
 import javax.swing.ButtonGroup;
 import javax.swing.JButton;
@@ -28,6 +29,7 @@ import javax.swing.event.ChangeListener;
 import org.rosuda.REngine.Rserve.RConnection;
 
 import javaBackend.DataConverter;
+import javaBackend.GeneSet;
 import javaBackend.ILPFormulation;
 import net.miginfocom.swing.MigLayout;
 import rBackend.RConnector;
@@ -40,6 +42,7 @@ public class UI {
 	private boolean basicFormulation, commonIntervals, maxGap, rWindows;
 	private DataConverter dc;
 	private ILPFormulation solve;
+	ArrayList<GeneSet> results;
 
 	public UI(){
 		this.setAdditionalGeneWeight(0);
@@ -346,11 +349,16 @@ public class UI {
 					//System.out.println(dc.getGenes().size());
 					solve = new ILPFormulation(dc.getGenomes(), dc.getGenes(), additionalGeneWeight, missingGeneWeight, sizeRangeLower, sizeRangeHigher, maxGapSize, getrWindowSize(), isBasicFormulation(), isCommonIntervals(), isMaxGap(), isrWindows());
 				    solve.generateGeneSets();
+				    results = new ArrayList<GeneSet>();
 				    
 				    System.out.println("result="+RConnector.checkLocalRserve());
 					try {
 						RConnection c=new RConnection();
-						solve.solve(c);
+						results = solve.solve(c);
+						for(int i=0; i<results.size(); i++){
+							results.get(i).print();
+						}
+						
 						c.shutdown();
 					} catch (Exception x) {
 						System.out.println("R code error: "+x.getMessage());
@@ -359,17 +367,6 @@ public class UI {
 			});
 		}
 		
-		
-
-		System.out.println(additionalGeneWeight);
-		System.out.println(missingGeneWeight);
-		System.out.println(sizeRangeHigher);
-		System.out.println(sizeRangeLower);
-		System.out.println(sizeRangeHigher);
-		System.out.println(this.basicFormulation);
-		System.out.println(this.commonIntervals);
-		System.out.println(this.maxGap);
-		System.out.println(this.rWindows);
 		resultsPanel.setLayout(new MigLayout("", "[grow]", "[grow][]"));
 		{
 			JTextArea results = new JTextArea();

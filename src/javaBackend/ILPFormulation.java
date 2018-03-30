@@ -107,7 +107,7 @@ public class ILPFormulation {
 		return allPartitions;
 	}
 	
-	public void solve(RConnection c){
+	public ArrayList<GeneSet> solve(RConnection c){
 		StringBuilder ilp = new StringBuilder("");
 		//ilp.append("install.packages('lpSolve')\n");
 		ilp.append("library(lpSolve)\n");
@@ -191,9 +191,30 @@ public class ILPFormulation {
 			System.out.println("R code error: "+x.getMessage());
 		};
 		
-		for(int i=0; i<referenceGeneSet.size(); i++){
-			System.out.println(costs[i]);
+		return getMinimalReferenceGeneSets(costs);
+	}
+	
+	private ArrayList<GeneSet> getMinimalReferenceGeneSets(int [] costs){
+		ArrayList<GeneSet> results = new ArrayList<GeneSet>();
+		
+		int minimum = costs[0];
+		for(int i=1; i<costs.length; i++){
+			if(minimum > costs[i]){
+				minimum = costs[i];
+			}
 		}
+		
+		for(int i=0; i<costs.length; i++){
+			if(costs[i]==minimum){
+				if(!results.contains(referenceGeneSet.get(i))){
+					results.add(referenceGeneSet.get(i));
+				}
+				
+				
+			}
+		}
+		
+		return results;		
 	}
 	
 	private void printPartitions(ArrayList<GeneSet> allPartitions){

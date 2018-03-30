@@ -39,6 +39,15 @@ public class GeneSet {
 		}
 	}
 	
+	public ArrayList<Integer> getGeneContent(){
+		return this.geneContent;
+	}
+	
+	public boolean equals(Object geneSet){
+		if(this.geneContent.equals(((GeneSet) geneSet).getGeneContent())) return true;		
+		return false;
+	}
+	
 	/*
 	public void setBinGeneContent(ArrayList<Gene> allGenes){
 		this.binGeneContent = new ArrayList<Integer>();
@@ -82,12 +91,13 @@ public class GeneSet {
 
 	}*/
 
-	/*public void print(){
+	public void print(){
 		for(int i=0; i<geneSet.size(); i++){
 			System.out.print(geneSet.get(i).getGeneNumberRep() + " ");
 		} System.out.println();
-	}*/
+	}
 	
+
 	/*
 	public void print(){
 		for(int i=0; i<binGeneContent.size(); i++){
