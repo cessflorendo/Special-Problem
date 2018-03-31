@@ -184,7 +184,7 @@ public class ILPFormulation {
 				c.eval(lpS.toString());
 				//System.out.println(lpS.toString());
 				costs[i] = c.eval("ilp$objval").asInteger();
-				System.out.println(c.eval("ilp$objval").asInteger());
+				//System.out.println(c.eval("ilp$objval").asInteger());
 			}
 			
 		} catch (Exception x) {
@@ -209,8 +209,6 @@ public class ILPFormulation {
 				if(!results.contains(referenceGeneSet.get(i))){
 					results.add(referenceGeneSet.get(i));
 				}
-				
-				
 			}
 		}
 		
