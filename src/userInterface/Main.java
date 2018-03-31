@@ -1,15 +1,18 @@
 package userInterface;
 
+import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 
+import javax.imageio.ImageIO;
 import javax.swing.ButtonGroup;
+import javax.swing.ImageIcon;
 import javax.swing.JButton;
-import javax.swing.JCheckBox;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
@@ -37,13 +40,16 @@ import rBackend.RConnector;
 public class Main {
 	private JFrame frame;
 	private File filename;
+	private JPanel homeScreen;
 	private JTabbedPane displayPane;
+	private JTabbedPane instructionsPane;
 	private int additionalGeneWeight, missingGeneWeight, sizeRangeLower, sizeRangeHigher, maxGapSize, rWindowSize;
 	private boolean basicFormulation, commonIntervals, maxGap, rWindows;
 	private DataConverter dc;
 	private ILPFormulation solve;
-	ArrayList<GeneSet> results;
-	JTextArea resultsArea;
+	private ArrayList<GeneSet> results;
+	private JTextArea resultsArea;
+	private ImageIcon icon;
 
 	public Main(){
 		this.setAdditionalGeneWeight(0);
@@ -65,20 +71,121 @@ public class Main {
 		frame.setTitle("Approximate Gene Cluster Tool");
 		frame.setMinimumSize(new Dimension(800,600));
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		frame.getContentPane().setLayout(new MigLayout("","[grow]","[grow]"));
+		
+		icon = new ImageIcon("images/icon1.png");
+		
+		frame.setIconImage(icon.getImage());
+		homeScreen = new JPanel();
+		displayPane = new JTabbedPane(JTabbedPane.TOP);
 
+		frame.add(homeScreen);		
+		homeScreen.setLayout(new MigLayout("", "[grow]", "[grow][]"));
+		{
+
+			JPanel titlePanel = new JPanel();
+			JPanel buttonsPanel = new JPanel();
+			JButton startButton = new JButton();
+			JButton instructionsButton = new JButton();
+			BufferedImage myPicture = null;
+			instructionsPane = new JTabbedPane(JTabbedPane.TOP);
+			JLabel picLabel = new JLabel();
+			
+			try {
+				myPicture = ImageIO.read(new File("images/logo.png"));
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+			picLabel = new JLabel(new ImageIcon(myPicture));
+
+			titlePanel.setBackground(Color.white);
+			buttonsPanel.setLayout(new MigLayout("", "[grow][grow]", "[]"));
+			startButton.setText("Start");
+			instructionsButton.setText("Getting Started");
+
+			titlePanel.add(picLabel, "center");
+			homeScreen.add(titlePanel, "grow, span");
+			homeScreen.add(buttonsPanel, "grow");
+			buttonsPanel.add(startButton, "grow");
+			buttonsPanel.add(instructionsButton, "grow");
+
+			startButton.addActionListener(new ActionListener(){
+				@Override
+				public void actionPerformed(ActionEvent arg0) {
+					frame.remove(homeScreen);
+					frame.setContentPane(displayPane);
+					frame.revalidate(); 
+					frame.repaint();
+				}
+
+			});
+			
+			instructionsButton.addActionListener(new ActionListener(){
+				public void actionPerformed(ActionEvent e){
+					frame.remove(frame.getContentPane());
+					frame.setContentPane(instructionsPane);
+					frame.revalidate(); 
+					frame.repaint();
+				}
+			});
+		}
+		
+		
+		{
+			
+			JPanel howToUse = new JPanel();
+			JPanel constraintsInstru = new JPanel();
+			JPanel limitations = new JPanel();
+			instructionsPane.addTab("How To Use Tool", howToUse);
+			instructionsPane.addTab("Constraints", constraintsInstru);
+			instructionsPane.addTab("Limitations", limitations);
+			JTextArea howToUseText = new JTextArea();
+			JTextArea constraintsText = new JTextArea();
+			JTextArea limitationsText = new JTextArea();
+			JButton mainMenu1 = new JButton();
+			JButton mainMenu2 = new JButton();
+			JButton mainMenu3 = new JButton();
+			
+			
+			howToUse.setLayout(new MigLayout("", "[grow]", "[grow][]"));
+			constraintsInstru.setLayout(new MigLayout("", "[grow]", "[grow][]"));
+			limitations.setLayout(new MigLayout("", "[grow]", "[grow][]"));
+			
+			mainMenu1.setText("Main Menu");
+			mainMenu2.setText("Main Menu");
+			mainMenu3.setText("Main Menu");
+			
+			ActionListener mainMenu = new ActionListener(){
+				public void actionPerformed(ActionEvent arg0) {	
+					frame.remove(displayPane);
+					frame.setContentPane(homeScreen);
+					frame.revalidate(); 
+					frame.repaint();
+				}
+			};
+			
+			mainMenu1.addActionListener(mainMenu);
+			mainMenu2.addActionListener(mainMenu);
+			mainMenu3.addActionListener(mainMenu);
+			
+			howToUse.add(howToUseText, "grow, span");
+			howToUse.add(mainMenu1, "tag left");
+			
+			constraintsInstru.add(constraintsText, "grow, span");
+			constraintsInstru.add(mainMenu2, "tag left");
+			
+			limitations.add(limitationsText, "grow, span");
+			limitations.add(mainMenu3, "tag left");
+
+		}
+		
 		JPanel inputPanel = new JPanel();
 		JPanel constraintsPanel = new JPanel();
 		JPanel resultsPanel = new JPanel();
-
-		displayPane = new JTabbedPane(JTabbedPane.TOP);
 		displayPane.addTab("Input Data", inputPanel);
 		displayPane.addTab("Constraints", constraintsPanel);
 		displayPane.addTab("Results",resultsPanel);
 		displayPane.setEnabledAt(1, false);
 		displayPane.setEnabledAt(2, false);
-
-		frame.getContentPane().add(displayPane, "cell 0 0, grow");		
 		inputPanel.setLayout(new MigLayout("wrap 2", "[][grow]", "[][][grow][][grow][]"));
 		{
 			JButton openFileButton = new JButton();
@@ -89,14 +196,15 @@ public class Main {
 			JScrollPane previewConvertedScr = new JScrollPane(previewConverted);
 			JLabel previewOriginalLabel = new JLabel();
 			JLabel previewConvertedLabel = new JLabel();
-
 			JButton nextButton = new JButton();
+			JButton mainMenuButton = new JButton();
 
 			openFileButton.setText("Open CSV File");
 			previewOriginalLabel.setText("Original data: ");
 			previewConvertedLabel.setText("Converted data: ");
 			nextButton.setEnabled(false);
 			nextButton.setText("Next");
+			mainMenuButton.setText("Main Menu");
 			//preview.setLineWrap(true);
 
 			inputPanel.add(openFileButton);
@@ -105,6 +213,7 @@ public class Main {
 			inputPanel.add(previewOriginalScr, "grow, span");
 			inputPanel.add(previewConvertedLabel, "growx, span");
 			inputPanel.add(previewConvertedScr, "grow, span");
+			inputPanel.add(mainMenuButton, "tag left");
 			inputPanel.add(nextButton, "tag right, span");
 
 			openFileButton.addActionListener(new ActionListener() {
@@ -123,15 +232,22 @@ public class Main {
 						previewConverted.setText(dc.getAllConvertedGenomes());
 						dc.replaceNonHomologs();
 					} catch (IOException e1) {
-						// TODO Auto-generated catch block
 						e1.printStackTrace();
 					}
 
 				}
 			});
 
+			mainMenuButton.addActionListener(new ActionListener(){
+				public void actionPerformed(ActionEvent arg0) {
+					frame.remove(displayPane);
+					frame.setContentPane(homeScreen);
+					frame.revalidate(); 
+					frame.repaint();
+				}
+			});
+
 			nextButton.addActionListener(new ActionListener(){
-				@Override
 				public void actionPerformed(ActionEvent e) {
 					displayPane.setEnabledAt(0, false);
 					displayPane.setEnabledAt(1, true);
@@ -142,7 +258,6 @@ public class Main {
 		}
 
 		constraintsPanel.setLayout(new MigLayout("", "[grow]", "[][][][grow][]"));
-		//constraintsPanel.setBackground(Color.white);
 		JPanel formulation = new JPanel();
 		JLabel formulationLabel = new JLabel();
 		ButtonGroup group = new ButtonGroup();
@@ -213,13 +328,13 @@ public class Main {
 						additional.setEnabled(false);
 						gapSize.setEnabled(false);
 						rWindowSize.setEnabled(false);
-						
+
 					}
-					
+
 					if(basic.isSelected()){
 						setBasicFormulation(true);
 					}
-					
+
 					if(commonIntervals.isSelected()){
 						setCommonIntervals(true);
 					}
@@ -264,51 +379,39 @@ public class Main {
 			constraints.add(rWindowSizeLabel, "tag right");
 			constraints.add(rWindowSize, "grow, span");
 			constraints.add(sep2, "growx, span");
-			
+
 			from.addChangeListener(new ChangeListener(){
-				@Override
 				public void stateChanged(ChangeEvent arg0) {
-					// TODO Auto-generated method stub
 					setSizeRangeLower((int)from.getValue());
 				}
 			});
-			
+
 			to.addChangeListener(new ChangeListener(){
-				@Override
 				public void stateChanged(ChangeEvent e) {
-					// TODO Auto-generated method stub
 					setSizeRangeHigher((int)to.getValue());
 				}
 			});
-			
+
 			additional.addChangeListener(new ChangeListener(){
-				@Override
 				public void stateChanged(ChangeEvent e) {
-					// TODO Auto-generated method stub
 					setAdditionalGeneWeight((int)additional.getValue());
 				}
 			});
-			
+
 			missing.addChangeListener(new ChangeListener(){
-				@Override
 				public void stateChanged(ChangeEvent e) {
-					// TODO Auto-generated method stub
 					setMissingGeneWeight((int)missing.getValue());
 				}
 			});
-			
+
 			gapSize.addChangeListener(new ChangeListener(){
-				@Override
 				public void stateChanged(ChangeEvent e) {
-					// TODO Auto-generated method stub
 					setMaxGapSize((int)gapSize.getValue());
 				}
 			});
-			
+
 			rWindowSize.addChangeListener(new ChangeListener(){
-				@Override
 				public void stateChanged(ChangeEvent e) {
-					// TODO Auto-generated method stub
 					setrWindowSize((int)rWindowSize.getValue());
 				}
 			});
@@ -345,14 +448,14 @@ public class Main {
 					displayPane.setEnabledAt(1, false);
 					displayPane.setEnabledAt(2, true);
 					displayPane.setSelectedIndex(2);
-					
+
 					//System.out.println(dc.getAllGenomes());
 					//System.out.println(dc.getGenes().size());
 					solve = new ILPFormulation(dc.getGenomes(), dc.getGenes(), additionalGeneWeight, missingGeneWeight, sizeRangeLower, sizeRangeHigher, maxGapSize, getrWindowSize(), isBasicFormulation(), isCommonIntervals(), isMaxGap(), isrWindows());
-				    solve.generateGeneSets();
-				    results = new ArrayList<GeneSet>();
-				    
-				    System.out.println("result="+RConnector.checkLocalRserve());
+					solve.generateGeneSets();
+					results = new ArrayList<GeneSet>();
+
+					System.out.println("result="+RConnector.checkLocalRserve());
 					try {
 						RConnection c=new RConnection();
 						results = solve.solve(c);
@@ -360,19 +463,19 @@ public class Main {
 							results.get(i).print();
 							resultsArea.append(results.get(i).toOrigString());
 						}
-						
+
 						//resultsArea.setText(results);
-						
+
 						c.shutdown();
-						
-						
+
+
 					} catch (Exception x) {
 						System.out.println("R code error: "+x.getMessage());
 					};
 				}
 			});
 		}
-		
+
 		resultsPanel.setLayout(new MigLayout("", "[grow]", "[grow][]"));
 		{
 			resultsArea = new JTextArea();
@@ -400,6 +503,95 @@ public class Main {
 				}
 			});
 		}
+
+	}
+
+	public int getAdditionalGeneWeight() {
+		return additionalGeneWeight;
+	}
+
+	public void setAdditionalGeneWeight(int additionalGeneWeight) {
+		this.additionalGeneWeight = additionalGeneWeight;
+	}
+
+	public boolean isBasicFormulation() {
+		return basicFormulation;
+	}
+
+	public void setBasicFormulation(boolean basicFormulation) {
+		this.basicFormulation = basicFormulation;
+	}
+
+	public boolean isCommonIntervals() {
+		return commonIntervals;
+	}
+
+	public void setCommonIntervals(boolean commonIntervals) {
+		this.commonIntervals = commonIntervals;
+	}
+
+	public boolean isMaxGap() {
+		return maxGap;
+	}
+
+	public void setMaxGap(boolean maxGap) {
+		this.maxGap = maxGap;
+	}
+
+	public boolean isrWindows() {
+		return rWindows;
+	}
+
+	public void setrWindows(boolean rWindows) {
+		this.rWindows = rWindows;
+	}
+
+	public int getMissingGeneWeight() {
+		return missingGeneWeight;
+	}
+
+	public void setMissingGeneWeight(int missingGeneWeight) {
+		this.missingGeneWeight = missingGeneWeight;
+	}
+
+	public int getSizeRangeLower() {
+		return sizeRangeLower;
+	}
+
+	public void setSizeRangeLower(int sizeRangeLower) {
+		this.sizeRangeLower = sizeRangeLower;
+	}
+
+	public int getSizeRangeHigher() {
+		return sizeRangeHigher;
+	}
+
+	public void setSizeRangeHigher(int sizeRangeHigher) {
+		this.sizeRangeHigher = sizeRangeHigher;
+	}
+
+	public int getMaxGapSize() {
+		return maxGapSize;
+	}
+
+	public void setMaxGapSize(int maxGapSize) {
+		this.maxGapSize = maxGapSize;
+	}
+
+	public int getrWindowSize() {
+		return rWindowSize;
+	}
+
+	public void setrWindowSize(int rWindowSize) {
+		this.rWindowSize = rWindowSize;
+	}
+
+	public ILPFormulation getSolve() {
+		return solve;
+	}
+
+	public void setSolve(ILPFormulation solve) {
+		this.solve = solve;
 	}
 
 	public static void main(String[] args){
@@ -407,117 +599,6 @@ public class Main {
 		window.frame.setVisible(true);
 
 	}
-
-
-	public int getAdditionalGeneWeight() {
-		return additionalGeneWeight;
-	}
-
-
-	public void setAdditionalGeneWeight(int additionalGeneWeight) {
-		this.additionalGeneWeight = additionalGeneWeight;
-	}
-
-
-	public boolean isBasicFormulation() {
-		return basicFormulation;
-	}
-
-
-	public void setBasicFormulation(boolean basicFormulation) {
-		this.basicFormulation = basicFormulation;
-	}
-
-
-	public boolean isCommonIntervals() {
-		return commonIntervals;
-	}
-
-
-	public void setCommonIntervals(boolean commonIntervals) {
-		this.commonIntervals = commonIntervals;
-	}
-
-
-	public boolean isMaxGap() {
-		return maxGap;
-	}
-
-
-	public void setMaxGap(boolean maxGap) {
-		this.maxGap = maxGap;
-	}
-
-
-	public boolean isrWindows() {
-		return rWindows;
-	}
-
-
-	public void setrWindows(boolean rWindows) {
-		this.rWindows = rWindows;
-	}
-
-
-	public int getMissingGeneWeight() {
-		return missingGeneWeight;
-	}
-
-
-	public void setMissingGeneWeight(int missingGeneWeight) {
-		this.missingGeneWeight = missingGeneWeight;
-	}
-
-
-	public int getSizeRangeLower() {
-		return sizeRangeLower;
-	}
-
-
-	public void setSizeRangeLower(int sizeRangeLower) {
-		this.sizeRangeLower = sizeRangeLower;
-	}
-
-
-	public int getSizeRangeHigher() {
-		return sizeRangeHigher;
-	}
-
-
-	public void setSizeRangeHigher(int sizeRangeHigher) {
-		this.sizeRangeHigher = sizeRangeHigher;
-	}
-
-
-	public int getMaxGapSize() {
-		return maxGapSize;
-	}
-
-
-	public void setMaxGapSize(int maxGapSize) {
-		this.maxGapSize = maxGapSize;
-	}
-
-
-	public int getrWindowSize() {
-		return rWindowSize;
-	}
-
-
-	public void setrWindowSize(int rWindowSize) {
-		this.rWindowSize = rWindowSize;
-	}
-
-
-	public ILPFormulation getSolve() {
-		return solve;
-	}
-
-
-	public void setSolve(ILPFormulation solve) {
-		this.solve = solve;
-	}
-
-
+	
 }
 
