@@ -1,10 +1,30 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <classpath>
-	<classpathentry kind="src" path="src"/>
-	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-1.8"/>
+	<classpathentry including="**/*.java" kind="src" output="target/classes" path="src">
+		<attributes>
+			<attribute name="optional" value="true"/>
+			<attribute name="maven.pomderived" value="true"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-1.8">
+		<attributes>
+			<attribute name="maven.pomderived" value="true"/>
+		</attributes>
+	</classpathentry>
 	<classpathentry kind="src" path="/hierarchical-clustering-java"/>
 	<classpathentry kind="lib" path="C:/Users/Cess/Documents/R/win-library/3.3/Rserve/java/REngine.jar"/>
 	<classpathentry kind="lib" path="C:/Users/Cess/Documents/R/win-library/3.3/Rserve/java/Rserve.jar"/>
 	<classpathentry kind="lib" path="C:/Users/Cess/Downloads/miglayout/miglayout15-swing.jar"/>
-	<classpathentry kind="output" path="bin"/>
+	<classpathentry kind="lib" path="C:/Users/Cess/workspace/Special Problem/pdflib/fontbox-2.0.9.jar"/>
+	<classpathentry kind="lib" path="C:/Users/Cess/workspace/Special Problem/pdflib/pdfbox-2.0.9.jar"/>
+	<classpathentry kind="lib" path="C:/Users/Cess/workspace/Special Problem/pdflib/pdfbox-debugger-2.0.9.jar"/>
+	<classpathentry kind="lib" path="C:/Users/Cess/workspace/Special Problem/pdflib/pdfbox-tools-2.0.9.jar"/>
+	<classpathentry kind="lib" path="C:/Users/Cess/workspace/Special Problem/pdflib/preflight-2.0.9.jar"/>
+	<classpathentry kind="lib" path="C:/Users/Cess/workspace/Special Problem/pdflib/xmpbox-2.0.9.jar"/>
+	<classpathentry kind="con" path="org.eclipse.m2e.MAVEN2_CLASSPATH_CONTAINER">
+		<attributes>
+			<attribute name="maven.pomderived" value="true"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry kind="output" path="target/classes"/>
 </classpath>

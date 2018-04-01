@@ -32,6 +32,7 @@ import javax.swing.event.ChangeListener;
 import org.rosuda.REngine.Rserve.RConnection;
 
 import javaBackend.DataConverter;
+import javaBackend.ExportPDF;
 import javaBackend.GeneSet;
 import javaBackend.ILPFormulation;
 import net.miginfocom.swing.MigLayout;
@@ -71,9 +72,9 @@ public class Main {
 		frame.setTitle("Approximate Gene Cluster Tool");
 		frame.setMinimumSize(new Dimension(800,600));
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		
+
 		icon = new ImageIcon("images/icon1.png");
-		
+
 		frame.setIconImage(icon.getImage());
 		homeScreen = new JPanel();
 		displayPane = new JTabbedPane(JTabbedPane.TOP);
@@ -89,7 +90,7 @@ public class Main {
 			BufferedImage myPicture = null;
 			instructionsPane = new JTabbedPane(JTabbedPane.TOP);
 			JLabel picLabel = new JLabel();
-			
+
 			try {
 				myPicture = ImageIO.read(new File("images/logo.png"));
 			} catch (IOException e) {
@@ -118,7 +119,7 @@ public class Main {
 				}
 
 			});
-			
+
 			instructionsButton.addActionListener(new ActionListener(){
 				public void actionPerformed(ActionEvent e){
 					frame.remove(frame.getContentPane());
@@ -128,10 +129,10 @@ public class Main {
 				}
 			});
 		}
-		
-		
+
+
 		{
-			
+
 			JPanel howToUse = new JPanel();
 			JPanel constraintsInstru = new JPanel();
 			JPanel limitations = new JPanel();
@@ -144,16 +145,16 @@ public class Main {
 			JButton mainMenu1 = new JButton();
 			JButton mainMenu2 = new JButton();
 			JButton mainMenu3 = new JButton();
-			
-			
+
+
 			howToUse.setLayout(new MigLayout("", "[grow]", "[grow][]"));
 			constraintsInstru.setLayout(new MigLayout("", "[grow]", "[grow][]"));
 			limitations.setLayout(new MigLayout("", "[grow]", "[grow][]"));
-			
+
 			mainMenu1.setText("Main Menu");
 			mainMenu2.setText("Main Menu");
 			mainMenu3.setText("Main Menu");
-			
+
 			ActionListener mainMenu = new ActionListener(){
 				public void actionPerformed(ActionEvent arg0) {	
 					frame.remove(displayPane);
@@ -162,22 +163,22 @@ public class Main {
 					frame.repaint();
 				}
 			};
-			
+
 			mainMenu1.addActionListener(mainMenu);
 			mainMenu2.addActionListener(mainMenu);
 			mainMenu3.addActionListener(mainMenu);
-			
+
 			howToUse.add(howToUseText, "grow, span");
 			howToUse.add(mainMenu1, "tag left");
-			
+
 			constraintsInstru.add(constraintsText, "grow, span");
 			constraintsInstru.add(mainMenu2, "tag left");
-			
+
 			limitations.add(limitationsText, "grow, span");
 			limitations.add(mainMenu3, "tag left");
 
 		}
-		
+
 		JPanel inputPanel = new JPanel();
 		JPanel constraintsPanel = new JPanel();
 		JPanel resultsPanel = new JPanel();
@@ -449,8 +450,6 @@ public class Main {
 					displayPane.setEnabledAt(2, true);
 					displayPane.setSelectedIndex(2);
 
-					//System.out.println(dc.getAllGenomes());
-					//System.out.println(dc.getGenes().size());
 					solve = new ILPFormulation(dc.getGenomes(), dc.getGenes(), additionalGeneWeight, missingGeneWeight, sizeRangeLower, sizeRangeHigher, maxGapSize, getrWindowSize(), isBasicFormulation(), isCommonIntervals(), isMaxGap(), isrWindows());
 					solve.generateGeneSets();
 					results = new ArrayList<GeneSet>();
@@ -459,13 +458,11 @@ public class Main {
 					try {
 						RConnection c=new RConnection();
 						results = solve.solve(c);
+						resultsArea.setText("");
 						for(int i=0; i<results.size(); i++){
 							results.get(i).print();
 							resultsArea.append(results.get(i).toOrigString());
 						}
-
-						//resultsArea.setText(results);
-
 						c.shutdown();
 
 
@@ -501,6 +498,37 @@ public class Main {
 					displayPane.setEnabledAt(2, false);
 					displayPane.setSelectedIndex(1);
 				}
+			});
+
+			exportPDF.addActionListener(new ActionListener(){
+				public void actionPerformed(ActionEvent e){
+					JFileChooser chooser = new JFileChooser(); 
+					chooser.setCurrentDirectory(new java.io.File("."));
+					chooser.setDialogTitle("Choose");
+					chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+
+					chooser.setAcceptAllFileFilterUsed(false);
+					if (chooser.showOpenDialog(chooser) == JFileChooser.APPROVE_OPTION) { 
+						System.out.println("getCurrentDirectory(): " 
+								+  chooser.getCurrentDirectory());
+						System.out.println("getSelectedFile() : " 
+								+  chooser.getSelectedFile());
+					}
+					else {
+						System.out.println("No Selection ");
+					}
+					
+
+					String location = chooser.getSelectedFile().getAbsolutePath();
+					location = location.replace("\\", "\\\\");
+					try {
+						ExportPDF export = new ExportPDF(location);
+					} catch (IOException e1) {
+						// TODO Auto-generated catch block
+						e1.printStackTrace();
+					}
+				}
+
 			});
 		}
 
@@ -599,6 +627,6 @@ public class Main {
 		window.frame.setVisible(true);
 
 	}
-	
+
 }
 
