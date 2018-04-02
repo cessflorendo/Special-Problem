@@ -6,6 +6,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.image.BufferedImage;
 import java.io.File;
+import java.io.FileFilter;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.time.LocalDateTime;
@@ -31,6 +32,7 @@ import javax.swing.SpinnerModel;
 import javax.swing.SpinnerNumberModel;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
+import javax.swing.filechooser.FileNameExtensionFilter;
 
 import org.rosuda.REngine.Rserve.RConnection;
 
@@ -423,7 +425,7 @@ public class Main {
 
 
 		}
-		sampleResultsLabel.setText("Sample results: ");
+		sampleResultsLabel.setText("Possible results: ");
 		constraintsPanel.add(sampleResultsLabel, "grow, span");
 		constraintsPanel.add(sampleResultsScr, "grow, span");
 
@@ -514,11 +516,15 @@ public class Main {
 					chooser.setAcceptAllFileFilterUsed(false);
 
 					JFileChooser fileChooser = new JFileChooser();
+					FileNameExtensionFilter pdfFilter = new FileNameExtensionFilter("PDF files", ".pdf");
+					fileChooser.setFileFilter(pdfFilter);
 					if (fileChooser.showSaveDialog(fileChooser) == JFileChooser.APPROVE_OPTION) {
 						File file = new File(fileChooser.getSelectedFile().getAbsolutePath());
 						System.out.println(fileChooser.getSelectedFile());
 						try {
 							ExportPDF exportPdf = new ExportPDF(file);
+							exportPdf.write("sdfhsdkfh");
+							exportPdf.save();
 							exportPdf.close();
 						} catch (IOException e1) {
 							// TODO Auto-generated catch block
@@ -538,6 +544,8 @@ public class Main {
 					chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
 					chooser.setAcceptAllFileFilterUsed(false);
 					JFileChooser fileChooser = new JFileChooser();
+					FileNameExtensionFilter csvFilter = new FileNameExtensionFilter("CSV files", ".csv");
+					fileChooser.setFileFilter(csvFilter);
 					if (fileChooser.showSaveDialog(fileChooser) == JFileChooser.APPROVE_OPTION) {
 						File file = new File(fileChooser.getSelectedFile().getAbsolutePath());
 						System.out.println(fileChooser.getSelectedFile());
