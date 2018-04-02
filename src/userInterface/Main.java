@@ -484,7 +484,7 @@ public class Main {
 			JButton back = new JButton();
 			JButton exportPDF = new JButton();
 			JButton exportCSV = new JButton();
-			String fileName = LocalDateTime.now().format(DateTimeFormatter.ofPattern("MM-dd-yyyy kk-mm-ss"));
+			///String fileName = LocalDateTime.now().format(DateTimeFormatter.ofPattern("MM-dd-yyyy kk-mm-ss"));
 
 			back.setText("Back");
 			exportPDF.setText("Export PDF");
@@ -509,58 +509,49 @@ public class Main {
 				public void actionPerformed(ActionEvent e){
 					JFileChooser chooser = new JFileChooser(); 
 					chooser.setCurrentDirectory(new java.io.File("."));
-					chooser.setDialogTitle("Choose path for pdf file: ");
+					chooser.setDialogTitle("Save as");
 					chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
 					chooser.setAcceptAllFileFilterUsed(false);
-					String location = "";
-					if (chooser.showOpenDialog(chooser) == JFileChooser.APPROVE_OPTION) { 
-						location = chooser.getSelectedFile().getAbsolutePath();
-						location = location.replace("\\", "\\\\");
-						location += "\\\\";
-						location += location + ".pdf";
-					}
-					else {
-						//NO SELECTED 
-					}
-					
-					try {
-						File file = new File(location);
-						ExportPDF exportPdf = new ExportPDF(file, fileName);
-						
-						exportPdf.export();
-					} catch (IOException e1) {
-						e1.printStackTrace();
+
+					JFileChooser fileChooser = new JFileChooser();
+					if (fileChooser.showSaveDialog(fileChooser) == JFileChooser.APPROVE_OPTION) {
+						File file = new File(fileChooser.getSelectedFile().getAbsolutePath());
+						System.out.println(fileChooser.getSelectedFile());
+						try {
+							ExportPDF exportPdf = new ExportPDF(file);
+							exportPdf.close();
+						} catch (IOException e1) {
+							// TODO Auto-generated catch block
+							e1.printStackTrace();
+						}
+						// save to file
 					}
 				}
 
 			});
-			
+
 			exportCSV.addActionListener(new ActionListener(){
 				public void actionPerformed(ActionEvent e){
 					JFileChooser chooser = new JFileChooser(); 
 					chooser.setCurrentDirectory(new java.io.File("."));
-					chooser.setDialogTitle("Choose path for csv file: ");
+					chooser.setDialogTitle("Save as");
 					chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
 					chooser.setAcceptAllFileFilterUsed(false);
-					String location = "";
-					if (chooser.showOpenDialog(chooser) == JFileChooser.APPROVE_OPTION) { 
-						location = chooser.getSelectedFile().getAbsolutePath();
-						location = location.replace("\\", "\\\\");
-						location += "\\\\";
-						location += location + ".csv";
-					}
-					else {
-						//NO SELECTED 
-					}
-					
-					try {
-						FileWriter writer = new FileWriter(new File(location));
-						ExportCSV exportCsv = new ExportCSV(writer);
-						
-						writer.flush();
-						writer.close();
-					} catch (IOException e1) {
-						e1.printStackTrace();
+					JFileChooser fileChooser = new JFileChooser();
+					if (fileChooser.showSaveDialog(fileChooser) == JFileChooser.APPROVE_OPTION) {
+						File file = new File(fileChooser.getSelectedFile().getAbsolutePath());
+						System.out.println(fileChooser.getSelectedFile());
+						try {
+							FileWriter writer = new FileWriter(file);
+							ExportCSV exportCsv = new ExportCSV(writer);
+
+							writer.flush();
+							writer.close();
+						} catch (IOException e1) {
+							// TODO Auto-generated catch block
+							e1.printStackTrace();
+						}
+						// save to file
 					}
 				}
 			});
