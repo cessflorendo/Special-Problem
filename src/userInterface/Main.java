@@ -237,7 +237,7 @@ public class Main {
 						dc = new DataConverter(filename.getAbsolutePath());
 						previewOriginal.setText(dc.getAllGenomes());
 						previewConverted.setText(dc.getAllConvertedGenomes());
-						dc.replaceNonHomologs();
+						//dc.replaceNonHomologs();
 					} catch (IOException e1) {
 						e1.printStackTrace();
 					}
@@ -456,7 +456,7 @@ public class Main {
 					displayPane.setEnabledAt(2, true);
 					displayPane.setSelectedIndex(2);
 
-					solve = new ILPFormulation(dc.getGenomes(), dc.getGenes(), additionalGeneWeight, missingGeneWeight, sizeRangeLower, sizeRangeHigher, maxGapSize, getrWindowSize(), isBasicFormulation(), isCommonIntervals(), isMaxGap(), isrWindows());
+					solve = new ILPFormulation(dc.getGenomes(), dc.getGenes(), dc.getMap(), additionalGeneWeight, missingGeneWeight, sizeRangeLower, sizeRangeHigher, maxGapSize, getrWindowSize(), isBasicFormulation(), isCommonIntervals(), isMaxGap(), isrWindows());
 					solve.generateGeneSets();
 					results = new ArrayList<GeneSet>();
 
@@ -533,7 +533,6 @@ public class Main {
 						// save to file
 					}
 				}
-
 			});
 
 			exportCSV.addActionListener(new ActionListener(){

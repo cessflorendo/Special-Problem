@@ -6,11 +6,13 @@ import java.util.ArrayList;
 
 public class DataConverter {
 	private ArrayList<Genome> allGenomes;
+	private ArrayList<Genome> convertedAllGenomes;
 	private ArrayList<Gene> allGenes;
 	private MapStringArrayList map;
 
 	public DataConverter(String filePath) throws IOException{
 		allGenomes = new ArrayList<Genome>();
+		convertedAllGenomes = new ArrayList<Genome>();
 		allGenes = new ArrayList<Gene>();
 		map = new MapStringArrayList();
 
@@ -47,20 +49,17 @@ public class DataConverter {
 		//printStuff();
 		//printAllGenes();
 	}
-
-	public void replaceNonHomologs(){
-		for(int i=0; i<allGenomes.size(); i++){
-			for(int j=0; j<allGenomes.get(i).getGenes().size(); j++){
-				if(map.getMappingOccurence(allGenomes.get(i).getGenes().get(j).getGeneName()) == 1){
-					allGenomes.get(i).getGenes().get(j).setGeneNumberRep(0);
-					
-				}
-			}
-		}
+	
+	public MapStringArrayList getMap(){
+		return this.map;
 	}
 
 	public ArrayList<Genome> getGenomes(){
 		return this.allGenomes;
+	}
+	
+	public ArrayList<Genome> getConvertedGenomes(){
+		return this.convertedAllGenomes;
 	}
 
 	public ArrayList<Gene> getGenes(){
@@ -117,6 +116,7 @@ public class DataConverter {
 			System.out.println(allGenes.get(i).getGeneName() + " : " + allGenes.get(i).getGeneNumberRep());
 		}
 	}
+	
 
 
 	/*
