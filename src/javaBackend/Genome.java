@@ -6,6 +6,7 @@ public class Genome {
 	private int genomeNumber;
 	private ArrayList<Gene> genes;
 	private ArrayList<Integer> genomeRep;
+	private ArrayList<GeneSet> partitions;
 	
 	public Genome(String genomeName, int genomeNumber){
 		this.genomeName = genomeName;
@@ -72,5 +73,13 @@ public class Genome {
 
 	public int size() {
 		return genes.size();
+	}
+
+	public ArrayList<GeneSet> getPartitions() {
+		return partitions;
+	}
+
+	public void setPartitions(ArrayList<GeneSet> partitions) {
+		this.partitions = partitions;
 	}
 }

@@ -1,7 +1,9 @@
 package userInterface;
 
 import java.awt.Color;
+import java.awt.Container;
 import java.awt.Dimension;
+import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.image.BufferedImage;
@@ -14,9 +16,11 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 
 import javax.imageio.ImageIO;
+import javax.swing.AbstractButton;
 import javax.swing.ButtonGroup;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
+import javax.swing.JComponent;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
@@ -45,18 +49,96 @@ import net.miginfocom.swing.MigLayout;
 import rBackend.RConnector;
 
 public class Main {
-	private JFrame frame;
-	private File filename;
-	private JPanel homeScreen;
-	private JTabbedPane displayPane;
-	private JTabbedPane instructionsPane;
 	private int additionalGeneWeight, missingGeneWeight, sizeRangeLower, sizeRangeHigher, maxGapSize, rWindowSize;
 	private boolean basicFormulation, commonIntervals, maxGap, rWindows;
 	private DataConverter dc;
 	private ILPFormulation solve;
 	private ArrayList<GeneSet> results;
-	private JTextArea resultsArea;
-	private ImageIcon icon;
+
+	private Font fontPlain;
+	private Font fontButton;
+	private Color cream;
+	private Color petal;
+	private Color burgundy;
+	private Color fresh;
+	private Color charcoal;
+
+
+	private int numOfGenomes = 0;
+	private JFrame frame;
+	private JPanel homeScreen;
+	private JPanel HS_title_panel;
+	private JPanel HS_buttons_panel;
+	private JButton HS_start_button;
+	private JButton HS_instructions_button;
+	private BufferedImage HS_logo;
+	private JTabbedPane instructions_pane;
+	private JLabel HS_pic_label;
+	private JTabbedPane mainDisplay_pane;
+	private JPanel IP_general;
+	private JPanel IP_constraints;
+	private JPanel IP_limitations;
+	private JTextArea IP_general_text;
+	private JTextArea IP_constraints_text;
+	private JTextArea IP_limitations_text;
+	private JButton IP_mainMenu1;
+	private JButton IP_mainMenu2;
+	private JButton IP_mainMenu3;
+	private ActionListener IP_mainMenu_listener;
+	private JPanel MD_input_panel;
+	private JPanel MD_variables_panel;
+	private JPanel MD_results_panel;
+	private JButton MD_IP_openFile_button;
+	private JTextArea MD_IP_preview_text;
+	private JScrollPane MD_IP_preview_scr;
+	private JTextArea MD_IP_previewConverted_text;
+	private JScrollPane MD_IP_previewConverted_scr;
+	private JLabel MD_IP_preview_lbl;
+	private JLabel MD_IP_previewConverted_lbl;
+	private JButton MD_IP_next_btn;
+	private JButton MD_IP_mainMenu_btn;
+	private JTextField MD_IP_filename_text;
+	private File MD_IP_filename;
+	private JSeparator formulation_constraints_sep;
+	private JSeparator constraints_sampleres_sep;
+	private JPanel VP_FP_formulation;
+	private JLabel VP_FP_formulation_lbl;
+	private ButtonGroup VP_FP_group;
+	private JRadioButton VP_FP_commonIntervals_rbtn;
+	private JRadioButton VP_FP_basic_rbtn;
+	private JRadioButton VP_FP_maxGap_rbtn;
+	private JRadioButton VP_FP_rWindows_rbtn;
+	private JLabel VP_CP_constraints_lbl;
+	private JLabel VP_CP_sizeRange_lbl;
+	private SpinnerNumberModel VP_CP_from_numberModel;
+	private JSpinner VP_CP_from_spnr;
+	private JSpinner VP_CP_to_spnr;
+	private JLabel VP_CP_additionalWeight_lbl;
+	private JSpinner VP_CP_additional_spnr;
+	private JLabel VP_CP_missingWeight_lbl;
+	private JSpinner VP_CP_missing_spnr;
+	private JLabel VP_CP_gapSize_lbl;
+	private JSpinner VP_CP_gapSize_spnr;
+	private JLabel VP_CP_rWindowSize_Lbl;
+	private JSpinner VP_CP_rWindowSize_spnr;
+	private JLabel VP_CP_sampleResults_lbl;
+	private JPanel VP_CP_constraints;
+	private JPanel VP_RP_sampleResults;
+	private JTextArea VP_RP_sampleResults_text;
+	private JLabel VP_RP_sampleResults_lbl;
+	private JScrollPane VP_RP_sampleResults_scr;
+	private JButton VP_RP_back_btn;
+	private AbstractButton VP_RP_next_btn;
+	private JTextArea MD_RP_results_text;
+	private JScrollPane MD_RP_results_scr;
+	private JButton MD_RP_exportCSV_btn;
+	private JButton MD_RP_exportPDF_btn;
+	private JPanel VP_CP_buttons;
+	private JButton VP_CP_back_btn;
+	private JButton VP_CP_next_btn;
+	private JTextArea VP_CP_sampleResults_text;
+	private JScrollPane VP_CP_sampleResults_scr;
+	private JButton MD_RP_back_btn;
 
 	public Main(){
 		this.setAdditionalGeneWeight(0);
@@ -69,499 +151,588 @@ public class Main {
 		this.setCommonIntervals(false);
 		this.setMaxGap(false);
 		this.setrWindows(false);
+		fontButton = new Font("Lucida Sans Unicode", Font.PLAIN, 14);
+		cream = Color.decode("#E9DCCD");
+		petal = Color.decode("#E3BAB3");
+		burgundy = Color.decode("#613A43");
+		fresh = Color.decode("#849974");
+		charcoal = Color.decode("#36384C");
 		initialize();
 	}
 
 
 	private void initialize(){
+
 		frame = new JFrame();
 		frame.setTitle("Approximate Gene Cluster Tool");
 		frame.setMinimumSize(new Dimension(800,600));
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-
-		icon = new ImageIcon("images/icon1.png");
-
-		frame.setIconImage(icon.getImage());
+		frame.setIconImage(new ImageIcon("images/icon1.png").getImage());
 		homeScreen = new JPanel();
-		displayPane = new JTabbedPane(JTabbedPane.TOP);
-
-		frame.add(homeScreen);		
 		homeScreen.setLayout(new MigLayout("", "[grow]", "[grow][]"));
+		frame.add(homeScreen);
+
 		{
 
-			JPanel titlePanel = new JPanel();
-			JPanel buttonsPanel = new JPanel();
-			JButton startButton = new JButton();
-			JButton instructionsButton = new JButton();
-			BufferedImage myPicture = null;
-			instructionsPane = new JTabbedPane(JTabbedPane.TOP);
-			JLabel picLabel = new JLabel();
-
-			try {
-				myPicture = ImageIO.read(new File("images/logo.png"));
-			} catch (IOException e) {
-				e.printStackTrace();
+			HS_title_panel = new JPanel();
+			{
+				HS_title_panel.setBackground(Color.white);
+				HS_pic_label = new JLabel();
+				HS_logo = null;
+				try {
+					HS_logo = ImageIO.read(new File("images/logo.png"));
+					HS_pic_label = new JLabel(new ImageIcon(HS_logo));
+					HS_title_panel.add(HS_pic_label, "center");
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
 			}
-			picLabel = new JLabel(new ImageIcon(myPicture));
 
-			titlePanel.setBackground(Color.white);
-			buttonsPanel.setLayout(new MigLayout("", "[grow][grow]", "[]"));
-			startButton.setText("Start");
-			instructionsButton.setText("Getting Started");
+			HS_buttons_panel = new JPanel();{
+				HS_buttons_panel.setLayout(new MigLayout("", "[grow][grow]", "[]"));
 
-			titlePanel.add(picLabel, "center");
-			homeScreen.add(titlePanel, "grow, span");
-			homeScreen.add(buttonsPanel, "grow");
-			buttonsPanel.add(startButton, "grow");
-			buttonsPanel.add(instructionsButton, "grow");
+				HS_start_button = new JButton();
+				HS_start_button.setText("Start");
+				HS_start_button.setFont(fontButton);
+				HS_start_button.setForeground(charcoal);
+				HS_start_button.addActionListener(new ActionListener(){
+					@Override
+					public void actionPerformed(ActionEvent arg0) {
+						frame.remove(homeScreen);
+						frame.setContentPane(mainDisplay_pane);
+						frame.revalidate(); 
+						frame.repaint();	
+					}
 
-			startButton.addActionListener(new ActionListener(){
-				@Override
-				public void actionPerformed(ActionEvent arg0) {
-					frame.remove(homeScreen);
-					frame.setContentPane(displayPane);
-					frame.revalidate(); 
-					frame.repaint();
-				}
+				});
 
-			});
 
-			instructionsButton.addActionListener(new ActionListener(){
-				public void actionPerformed(ActionEvent e){
-					frame.remove(frame.getContentPane());
-					frame.setContentPane(instructionsPane);
-					frame.revalidate(); 
-					frame.repaint();
-				}
-			});
+				HS_instructions_button = new JButton();
+				HS_instructions_button.setText("Getting Started");
+				HS_instructions_button.setFont(fontButton);
+				HS_instructions_button.setForeground(charcoal);
+				HS_instructions_button.addActionListener(new ActionListener(){
+					public void actionPerformed(ActionEvent e){
+						frame.remove(frame.getContentPane());
+						frame.setContentPane(instructions_pane);
+						frame.revalidate(); 
+						frame.repaint();
+					}
+				});
+
+				HS_buttons_panel.add(HS_start_button, "grow");
+				HS_buttons_panel.add(HS_instructions_button, "grow");
+			}
 		}
 
+		homeScreen.add(HS_title_panel, "grow, span");
+		homeScreen.add(HS_buttons_panel, "grow");
 
-		{
-
-			JPanel howToUse = new JPanel();
-			JPanel constraintsInstru = new JPanel();
-			JPanel limitations = new JPanel();
-			instructionsPane.addTab("How To Use Tool", howToUse);
-			instructionsPane.addTab("Constraints", constraintsInstru);
-			instructionsPane.addTab("Limitations", limitations);
-			JTextArea howToUseText = new JTextArea();
-			JTextArea constraintsText = new JTextArea();
-			JTextArea limitationsText = new JTextArea();
-			JButton mainMenu1 = new JButton();
-			JButton mainMenu2 = new JButton();
-			JButton mainMenu3 = new JButton();
-
-
-			howToUse.setLayout(new MigLayout("", "[grow]", "[grow][]"));
-			constraintsInstru.setLayout(new MigLayout("", "[grow]", "[grow][]"));
-			limitations.setLayout(new MigLayout("", "[grow]", "[grow][]"));
-
-			mainMenu1.setText("Main Menu");
-			mainMenu2.setText("Main Menu");
-			mainMenu3.setText("Main Menu");
-
-			ActionListener mainMenu = new ActionListener(){
+		instructions_pane = new JTabbedPane(JTabbedPane.TOP);{
+			instructions_pane.setFont(fontButton);
+			IP_mainMenu_listener = new ActionListener(){
 				public void actionPerformed(ActionEvent arg0) {	
-					frame.remove(displayPane);
+					frame.remove(mainDisplay_pane);
 					frame.setContentPane(homeScreen);
 					frame.revalidate(); 
 					frame.repaint();
 				}
 			};
 
-			mainMenu1.addActionListener(mainMenu);
-			mainMenu2.addActionListener(mainMenu);
-			mainMenu3.addActionListener(mainMenu);
+			IP_general = new JPanel();{
+				IP_general.setLayout(new MigLayout("", "[grow]", "[grow][]"));
 
-			howToUse.add(howToUseText, "grow, span");
-			howToUse.add(mainMenu1, "tag left");
+				IP_mainMenu1 = new JButton();
+				IP_mainMenu1.setText("Main Menu");
+				IP_mainMenu1.setFont(fontButton);
+				IP_mainMenu1.addActionListener(IP_mainMenu_listener);
 
-			constraintsInstru.add(constraintsText, "grow, span");
-			constraintsInstru.add(mainMenu2, "tag left");
+				IP_general_text = new JTextArea();
+				IP_general.add(IP_general_text, "grow, span");
+				IP_general.add(IP_mainMenu1, "tag left");
 
-			limitations.add(limitationsText, "grow, span");
-			limitations.add(mainMenu3, "tag left");
+			}
+			IP_constraints = new JPanel();{
+				IP_constraints.setLayout(new MigLayout("", "[grow]", "[grow][]"));
 
+				IP_mainMenu2 = new JButton();
+				IP_mainMenu2.setText("Main Menu");
+				IP_mainMenu2.setFont(fontButton);
+				IP_mainMenu2.addActionListener(IP_mainMenu_listener);
+
+				IP_constraints_text = new JTextArea();
+				IP_constraints.add(IP_constraints_text, "grow, span");
+				IP_constraints.add(IP_mainMenu2, "tag left");
+			}
+			IP_limitations = new JPanel();{
+				IP_limitations.setLayout(new MigLayout("", "[grow]", "[grow][]"));
+
+				IP_mainMenu3 = new JButton();
+				IP_mainMenu3.setText("Main Menu");
+				IP_mainMenu3.setFont(fontButton);
+				IP_mainMenu3.addActionListener(IP_mainMenu_listener);
+
+				IP_limitations_text = new JTextArea();
+				IP_limitations.add(IP_limitations_text, "grow, span");
+				IP_limitations.add(IP_mainMenu3, "tag left");
+			}
+
+
+			instructions_pane.addTab("How To Use Tool", IP_general);
+			instructions_pane.addTab("Constraints", IP_constraints);
+			instructions_pane.addTab("Limitations", IP_limitations);
 		}
 
-		JPanel inputPanel = new JPanel();
-		JPanel constraintsPanel = new JPanel();
-		JPanel resultsPanel = new JPanel();
-		displayPane.addTab("Input Data", inputPanel);
-		displayPane.addTab("Constraints", constraintsPanel);
-		displayPane.addTab("Results",resultsPanel);
-		displayPane.setEnabledAt(1, false);
-		displayPane.setEnabledAt(2, false);
-		inputPanel.setLayout(new MigLayout("wrap 2", "[][grow]", "[][][grow][][grow][]"));
-		{
-			JButton openFileButton = new JButton();
-			JTextField fileNameTextField = new JTextField();
-			JTextArea previewOriginal = new JTextArea();
-			JScrollPane previewOriginalScr = new JScrollPane(previewOriginal);
-			JTextArea previewConverted = new JTextArea();
-			JScrollPane previewConvertedScr = new JScrollPane(previewConverted);
-			JLabel previewOriginalLabel = new JLabel();
-			JLabel previewConvertedLabel = new JLabel();
-			JButton nextButton = new JButton();
-			JButton mainMenuButton = new JButton();
+		mainDisplay_pane = new JTabbedPane(JTabbedPane.TOP);{
+			MD_input_panel = new JPanel();{
+				MD_input_panel.setLayout(new MigLayout("wrap 2", "[][grow]", "[][][grow][][grow][]"));
 
-			openFileButton.setText("Open CSV File");
-			previewOriginalLabel.setText("Original data: ");
-			previewConvertedLabel.setText("Converted data: ");
-			nextButton.setEnabled(false);
-			nextButton.setText("Next");
-			mainMenuButton.setText("Main Menu");
-			//preview.setLineWrap(true);
+				MD_IP_filename = null;
+				MD_IP_filename_text = new JTextField();
+				MD_IP_openFile_button = new JButton();
+				MD_IP_openFile_button.setText("Open CSV File");
+				MD_IP_openFile_button.setFont(fontButton);
+				MD_IP_openFile_button.addActionListener(new ActionListener() {
+					@Override
+					public void actionPerformed(ActionEvent e) {
+						JFileChooser jfc = new JFileChooser();
+						jfc.setCurrentDirectory(new File(System.getProperty("user.dir")));
+						jfc.showDialog(null,"Please Select the File");
+						jfc.setVisible(true);
+						if(jfc.getSelectedFile()!=null){
+							MD_IP_filename = jfc.getSelectedFile();
+							MD_IP_filename_text.setText(MD_IP_filename.getAbsolutePath());
+							MD_IP_next_btn.setEnabled(true);
 
-			inputPanel.add(openFileButton);
-			inputPanel.add(fileNameTextField, "growx, span");
-			inputPanel.add(previewOriginalLabel, "growx, span");
-			inputPanel.add(previewOriginalScr, "grow, span");
-			inputPanel.add(previewConvertedLabel, "growx, span");
-			inputPanel.add(previewConvertedScr, "grow, span");
-			inputPanel.add(mainMenuButton, "tag left");
-			inputPanel.add(nextButton, "tag right, span");
-
-			openFileButton.addActionListener(new ActionListener() {
-				@Override
-				public void actionPerformed(ActionEvent e) {
-					JFileChooser jfc = new JFileChooser();
-					jfc.showDialog(null,"Please Select the File");
-					jfc.setVisible(true);
-					filename = jfc.getSelectedFile();
-					fileNameTextField.setText(filename.getAbsolutePath());
-					nextButton.setEnabled(true);
-
-					try {
-						dc = new DataConverter(filename.getAbsolutePath());
-						previewOriginal.setText(dc.getAllGenomes());
-						previewConverted.setText(dc.getAllConvertedGenomes());
-						//dc.replaceNonHomologs();
-					} catch (IOException e1) {
-						e1.printStackTrace();
-					}
-
-				}
-			});
-
-			mainMenuButton.addActionListener(new ActionListener(){
-				public void actionPerformed(ActionEvent arg0) {
-					frame.remove(displayPane);
-					frame.setContentPane(homeScreen);
-					frame.revalidate(); 
-					frame.repaint();
-				}
-			});
-
-			nextButton.addActionListener(new ActionListener(){
-				public void actionPerformed(ActionEvent e) {
-					displayPane.setEnabledAt(0, false);
-					displayPane.setEnabledAt(1, true);
-					displayPane.setEnabledAt(2, false);
-					displayPane.setSelectedIndex(1);
-				}
-			});
-		}
-
-		constraintsPanel.setLayout(new MigLayout("", "[grow]", "[][][][grow][]"));
-		JPanel formulation = new JPanel();
-		JLabel formulationLabel = new JLabel();
-		ButtonGroup group = new ButtonGroup();
-		JRadioButton basic = new JRadioButton("Basic Formulation");
-		JRadioButton commonIntervals = new JRadioButton("Common Intervals");
-		JRadioButton maxGap = new JRadioButton("Max Gap");
-		JRadioButton rWindows = new JRadioButton("r-Windows");
-		group.add(basic);
-		group.add(commonIntervals);
-		group.add(maxGap);
-		group.add(rWindows);
-		JSeparator sep1 = new JSeparator();
-		JSeparator sep2 = new JSeparator();
-		JPanel constraints = new JPanel();
-		JLabel contraintsLabel = new JLabel();
-		JLabel sizeRangeLabel = new JLabel();
-		SpinnerModel sm = new SpinnerNumberModel(0, 0, 9, 1);
-		JSpinner from = new JSpinner(sm);
-		JSpinner to = new JSpinner();
-		JLabel additionalWeightLabel = new JLabel();
-		JSpinner additional = new JSpinner();
-		JLabel missingWeightLabel = new JLabel();
-		JSpinner missing = new JSpinner();
-		JLabel gapSizeLabel = new JLabel();
-		JSpinner gapSize = new JSpinner();
-		JLabel rWindowSizeLabel = new JLabel();
-		JSpinner rWindowSize = new JSpinner();
-		JPanel buttons = new JPanel();
-		JButton backButton = new JButton();
-		JButton nextButton = new JButton();
-		JTextArea sampleResults = new JTextArea();
-		JLabel sampleResultsLabel = new JLabel();
-		JScrollPane sampleResultsScr = new JScrollPane(sampleResults);
-
-		from.setEnabled(false);
-		to.setEnabled(false);
-		missing.setEnabled(false);
-		additional.setEnabled(false);
-		gapSize.setEnabled(false);
-		rWindowSize.setEnabled(false);
-		//nextButton.setEnabled(false);
-
-		{
-			formulation.setLayout(new MigLayout("", "[grow][grow][grow][grow]", "[][]"));
-			formulationLabel.setText("Choose formulation to use: ");
-
-			constraintsPanel.add(formulation, "growx, wrap");
-			formulation.add(formulationLabel, "growx, span");
-			formulation.add(basic, "grow");
-			formulation.add(commonIntervals, "grow");
-			formulation.add(maxGap, "grow");
-			formulation.add(rWindows, "grow, span");
-			formulation.add(sep1, "growx, span");
-
-			ActionListener formulationListener = new ActionListener(){
-				@Override
-				public void actionPerformed(ActionEvent e) {
-					if (basic.isSelected() || commonIntervals.isSelected() || maxGap.isSelected() || rWindows.isSelected()){
-						from.setEnabled(true);
-						to.setEnabled(true);
-						missing.setEnabled(true);
-						additional.setEnabled(true);
-					}
-					else{
-						from.setEnabled(false);
-						to.setEnabled(false);
-						missing.setEnabled(false);
-						additional.setEnabled(false);
-						gapSize.setEnabled(false);
-						rWindowSize.setEnabled(false);
-
-					}
-
-					if(basic.isSelected()){
-						setBasicFormulation(true);
-					}
-
-					if(commonIntervals.isSelected()){
-						setCommonIntervals(true);
-					}
-
-					if(maxGap.isSelected()){
-						gapSize.setEnabled(true);
-						setMaxGap(true);
-					} else gapSize.setEnabled(false);
-
-					if(rWindows.isSelected()){
-						rWindowSize.setEnabled(true);
-						setrWindows(true);
-					} else rWindowSize.setEnabled(false);
-				}
-			};
-
-			basic.addActionListener(formulationListener);
-			commonIntervals.addActionListener(formulationListener);
-			maxGap.addActionListener(formulationListener);
-			rWindows.addActionListener(formulationListener);
-		}
-		{
-			constraints.setLayout(new MigLayout("", "[grow][grow][grow]", "[][]"));
-			contraintsLabel.setText("Input constraints: ");
-			sizeRangeLabel.setText("Size Range: ");	
-			additionalWeightLabel.setText("Integer Weights (+): ");
-			missingWeightLabel.setText("Integer Weights (-): ");
-			gapSizeLabel.setText("Gap Size: ");	
-			rWindowSizeLabel.setText("r Size: ");
-
-			constraintsPanel.add(constraints, "growx, wrap");
-			constraints.add(contraintsLabel, "growx, span");
-			constraints.add(sizeRangeLabel, "tag right");
-			constraints.add(from, "grow");
-			constraints.add(to, "grow, span");	
-			constraints.add(additionalWeightLabel, "tag right");		
-			constraints.add(additional, "grow, span");	
-			constraints.add(missingWeightLabel, "tag right");
-			constraints.add(missing, "grow, span");
-			constraints.add(gapSizeLabel, "tag right");
-			constraints.add(gapSize, "grow, span");	
-			constraints.add(rWindowSizeLabel, "tag right");
-			constraints.add(rWindowSize, "grow, span");
-			constraints.add(sep2, "growx, span");
-
-			from.addChangeListener(new ChangeListener(){
-				public void stateChanged(ChangeEvent arg0) {
-					setSizeRangeLower((int)from.getValue());
-				}
-			});
-
-			to.addChangeListener(new ChangeListener(){
-				public void stateChanged(ChangeEvent e) {
-					setSizeRangeHigher((int)to.getValue());
-				}
-			});
-
-			additional.addChangeListener(new ChangeListener(){
-				public void stateChanged(ChangeEvent e) {
-					setAdditionalGeneWeight((int)additional.getValue());
-				}
-			});
-
-			missing.addChangeListener(new ChangeListener(){
-				public void stateChanged(ChangeEvent e) {
-					setMissingGeneWeight((int)missing.getValue());
-				}
-			});
-
-			gapSize.addChangeListener(new ChangeListener(){
-				public void stateChanged(ChangeEvent e) {
-					setMaxGapSize((int)gapSize.getValue());
-				}
-			});
-
-			rWindowSize.addChangeListener(new ChangeListener(){
-				public void stateChanged(ChangeEvent e) {
-					setrWindowSize((int)rWindowSize.getValue());
-				}
-			});
-
-
-		}
-		sampleResultsLabel.setText("Possible results: ");
-		constraintsPanel.add(sampleResultsLabel, "grow, span");
-		constraintsPanel.add(sampleResultsScr, "grow, span");
-
-		{
-			buttons.setLayout(new MigLayout("", "[grow][grow]", "[grow]"));
-			backButton.setText("Back");
-			nextButton.setText("Next");
-
-			constraintsPanel.add(buttons, "growx, wrap");
-			buttons.add(backButton, "tag left");
-			buttons.add(nextButton, "tag right, wrap");
-
-			backButton.addActionListener(new ActionListener(){
-				@Override
-				public void actionPerformed(ActionEvent e) {
-					displayPane.setEnabledAt(0, true);
-					displayPane.setEnabledAt(1, false);
-					displayPane.setEnabledAt(2, false);
-					displayPane.setSelectedIndex(0);
-				}
-			});
-
-			nextButton.addActionListener(new ActionListener(){
-				@Override
-				public void actionPerformed(ActionEvent e) {
-					displayPane.setEnabledAt(0, false);
-					displayPane.setEnabledAt(1, false);
-					displayPane.setEnabledAt(2, true);
-					displayPane.setSelectedIndex(2);
-
-					solve = new ILPFormulation(dc.getGenomes(), dc.getGenes(), dc.getMap(), additionalGeneWeight, missingGeneWeight, sizeRangeLower, sizeRangeHigher, maxGapSize, getrWindowSize(), isBasicFormulation(), isCommonIntervals(), isMaxGap(), isrWindows());
-					solve.generateGeneSets();
-					results = new ArrayList<GeneSet>();
-
-					System.out.println("result="+RConnector.checkLocalRserve());
-					try {
-						RConnection c=new RConnection();
-						results = solve.solve(c);
-						resultsArea.setText("");
-						for(int i=0; i<results.size(); i++){
-							results.get(i).print();
-							resultsArea.append(results.get(i).toOrigString());
+							try {
+								dc = new DataConverter(MD_IP_filename.getAbsolutePath());
+								MD_IP_preview_text.setText(dc.getAllGenomes());
+								MD_IP_previewConverted_text.setText(dc.getAllConvertedGenomes());
+								setNumOfGenomes(dc.getNumberOfGenomes());
+							} catch (IOException e1) {
+								e1.printStackTrace();
+							}
 						}
-						c.shutdown();
+					}
+				});
 
 
-					} catch (Exception x) {
-						System.out.println("R code error: "+x.getMessage());
+				MD_IP_preview_lbl = new JLabel();
+				MD_IP_preview_lbl.setText("Original data: ");
+				MD_IP_preview_lbl.setFont(fontButton);
+
+				MD_IP_preview_text = new JTextArea();
+				MD_IP_preview_text.setEditable(false);
+
+				MD_IP_preview_scr = new JScrollPane(MD_IP_preview_text);
+
+
+				MD_IP_previewConverted_text = new JTextArea();
+				MD_IP_previewConverted_text.setEditable(false);
+				MD_IP_previewConverted_scr = new JScrollPane(MD_IP_previewConverted_text);
+
+				MD_IP_previewConverted_lbl = new JLabel();
+				MD_IP_previewConverted_lbl.setText("Converted data: ");
+				MD_IP_previewConverted_lbl.setFont(fontButton);
+
+				MD_IP_next_btn = new JButton();
+				MD_IP_next_btn.setEnabled(false);
+				MD_IP_next_btn.setText("Next");
+				MD_IP_next_btn.setFont(fontButton);
+				MD_IP_next_btn.addActionListener(new ActionListener(){
+					public void actionPerformed(ActionEvent e) {
+						mainDisplay_pane.setEnabledAt(0, false);
+						mainDisplay_pane.setEnabledAt(1, true);
+						mainDisplay_pane.setEnabledAt(2, false);
+						mainDisplay_pane.setSelectedIndex(1);
+
+						if(numOfGenomes == 2){
+							VP_FP_rWindows_rbtn.setEnabled(true);
+							VP_FP_rWindows_rbtn.setSelected(false);
+						} else VP_FP_rWindows_rbtn.setEnabled(false);
+					}
+				});
+
+				MD_IP_mainMenu_btn = new JButton();
+				MD_IP_mainMenu_btn.setText("Main Menu");
+				MD_IP_mainMenu_btn.setFont(fontButton);
+				MD_IP_mainMenu_btn.addActionListener(new ActionListener(){
+					public void actionPerformed(ActionEvent arg0) {
+						frame.remove(mainDisplay_pane);
+						frame.setContentPane(homeScreen);
+						frame.revalidate(); 
+						frame.repaint();
+					}
+				});
+
+				MD_input_panel.add(MD_IP_openFile_button);
+				MD_input_panel.add(MD_IP_filename_text, "growx, span");
+				MD_input_panel.add(MD_IP_preview_lbl, "growx, span");
+				MD_input_panel.add(MD_IP_preview_scr, "grow, span");
+				MD_input_panel.add(MD_IP_previewConverted_lbl, "growx, span");
+				MD_input_panel.add(MD_IP_previewConverted_scr, "grow, span");
+				MD_input_panel.add(MD_IP_mainMenu_btn, "tag left");
+				MD_input_panel.add(MD_IP_next_btn, "tag right, span");
+			}
+
+
+
+			MD_variables_panel = new JPanel();{
+				MD_variables_panel.setLayout(new MigLayout("", "[grow]", "[][][]"));
+				formulation_constraints_sep = new JSeparator();
+				constraints_sampleres_sep = new JSeparator();
+
+				VP_FP_formulation = new JPanel();{
+					VP_FP_formulation.setLayout(new MigLayout("", "[grow][grow][grow][grow]", "[][]"));
+					VP_FP_formulation_lbl = new JLabel();
+					VP_FP_formulation_lbl.setText("Choose formulation to use: ");
+
+					VP_FP_group = new ButtonGroup();
+
+					VP_FP_basic_rbtn = new JRadioButton("Basic Formulation");
+					VP_FP_commonIntervals_rbtn = new JRadioButton("Common Intervals");
+					VP_FP_maxGap_rbtn = new JRadioButton("Max Gap");
+					VP_FP_rWindows_rbtn = new JRadioButton("r-Windows");
+
+					VP_FP_group.add(VP_FP_basic_rbtn);
+					VP_FP_group.add(VP_FP_commonIntervals_rbtn);
+					VP_FP_group.add(VP_FP_maxGap_rbtn);
+					VP_FP_group.add(VP_FP_rWindows_rbtn);
+
+					VP_FP_formulation.add(VP_FP_formulation_lbl, "growx, span");
+					VP_FP_formulation.add(VP_FP_basic_rbtn, "grow");
+					VP_FP_formulation.add(VP_FP_commonIntervals_rbtn, "grow");
+					VP_FP_formulation.add(VP_FP_maxGap_rbtn, "grow");
+					VP_FP_formulation.add(VP_FP_rWindows_rbtn, "grow, span");
+					VP_FP_formulation.add(formulation_constraints_sep, "growx, span");
+
+					ActionListener formulationListener = new ActionListener(){
+						@Override
+						public void actionPerformed(ActionEvent e) {
+							if (VP_FP_basic_rbtn.isSelected() || VP_FP_commonIntervals_rbtn.isSelected() || VP_FP_maxGap_rbtn.isSelected() || VP_FP_rWindows_rbtn.isSelected()){
+								VP_CP_from_spnr.setEnabled(true);
+								VP_CP_to_spnr.setEnabled(true);
+								VP_CP_missing_spnr.setEnabled(true);
+								VP_CP_additional_spnr.setEnabled(true);
+							}
+							else{
+								VP_CP_from_spnr.setEnabled(false);
+								VP_CP_to_spnr.setEnabled(false);
+								VP_CP_missing_spnr.setEnabled(false);
+								VP_CP_additional_spnr.setEnabled(false);
+								VP_CP_gapSize_spnr.setEnabled(false);
+								VP_CP_rWindowSize_spnr.setEnabled(false);
+
+							}
+
+							if(VP_FP_basic_rbtn.isSelected()){
+								setBasicFormulation(true);
+							}
+
+							if(VP_FP_commonIntervals_rbtn.isSelected()){
+								VP_CP_missing_spnr.setEnabled(false);
+								VP_CP_missing_spnr.setValue(1);
+								VP_CP_additional_spnr.setEnabled(false);
+								VP_CP_additional_spnr.setValue(1);
+								setCommonIntervals(true);
+							}
+
+							if(VP_FP_maxGap_rbtn.isSelected()){
+								VP_CP_missing_spnr.setEnabled(false);
+								VP_CP_missing_spnr.setValue(0);
+								VP_CP_additional_spnr.setEnabled(false);
+								VP_CP_additional_spnr.setValue(0);
+								VP_CP_gapSize_spnr.setEnabled(true);
+								setMaxGap(true);
+							} else VP_CP_gapSize_spnr.setEnabled(false);
+
+							if(VP_FP_rWindows_rbtn.isSelected()){
+								VP_CP_missing_spnr.setEnabled(false);
+								VP_CP_missing_spnr.setValue(1);
+								VP_CP_additional_spnr.setEnabled(false);
+								VP_CP_additional_spnr.setValue(0);
+								VP_CP_rWindowSize_spnr.setEnabled(true);
+								setrWindows(true);
+							} else VP_CP_rWindowSize_spnr.setEnabled(false);
+						}
 					};
+
+					VP_FP_basic_rbtn.addActionListener(formulationListener);
+					VP_FP_commonIntervals_rbtn.addActionListener(formulationListener);
+					VP_FP_maxGap_rbtn.addActionListener(formulationListener);
+					VP_FP_rWindows_rbtn.addActionListener(formulationListener);
+
 				}
-			});
+
+				VP_CP_constraints = new JPanel();{
+					VP_CP_constraints.setLayout(new MigLayout("", "[grow][grow][grow]", "[]"));
+
+					VP_CP_constraints_lbl = new JLabel();
+					VP_CP_constraints_lbl.setText("Input constraints: ");
+
+					VP_CP_sizeRange_lbl = new JLabel();
+					VP_CP_sizeRange_lbl.setText("Size Range: ");	
+
+					VP_CP_from_numberModel = new SpinnerNumberModel(0, 0, 9, 1);
+					VP_CP_from_spnr = new JSpinner(VP_CP_from_numberModel);
+					VP_CP_to_spnr = new JSpinner();
+
+					VP_CP_additionalWeight_lbl = new JLabel();
+					VP_CP_additionalWeight_lbl.setText("Integer Weights (+): ");
+
+					VP_CP_additional_spnr = new JSpinner();
+
+					VP_CP_missingWeight_lbl = new JLabel();
+					VP_CP_missingWeight_lbl.setText("Integer Weights (-): ");
+
+					VP_CP_missing_spnr = new JSpinner();
+
+					VP_CP_gapSize_lbl = new JLabel();
+					VP_CP_gapSize_lbl.setText("Gap Size: ");
+
+					VP_CP_gapSize_spnr = new JSpinner();
+
+					VP_CP_rWindowSize_Lbl = new JLabel();
+					VP_CP_rWindowSize_Lbl.setText("r Size: ");
+
+					VP_CP_rWindowSize_spnr = new JSpinner();
+
+					VP_CP_from_spnr.setEnabled(false);
+					VP_CP_to_spnr.setEnabled(false);
+					VP_CP_missing_spnr.setEnabled(false);
+					VP_CP_additional_spnr.setEnabled(false);
+					VP_CP_gapSize_spnr.setEnabled(false);
+					VP_CP_rWindowSize_spnr.setEnabled(false);
+
+
+					VP_CP_constraints.add(VP_CP_constraints_lbl, "growx, span");
+					VP_CP_constraints.add(VP_CP_sizeRange_lbl, "tag right");
+					VP_CP_constraints.add(VP_CP_from_spnr, "grow");
+					VP_CP_constraints.add(VP_CP_to_spnr, "grow, span");	
+					VP_CP_constraints.add(VP_CP_additionalWeight_lbl, "tag right");		
+					VP_CP_constraints.add(VP_CP_additional_spnr, "grow, span");	
+					VP_CP_constraints.add(VP_CP_missingWeight_lbl, "tag right");
+					VP_CP_constraints.add(VP_CP_missing_spnr, "grow, span");
+					VP_CP_constraints.add(VP_CP_gapSize_lbl, "tag right");
+					VP_CP_constraints.add(VP_CP_gapSize_spnr, "grow, span");	
+					VP_CP_constraints.add(VP_CP_rWindowSize_Lbl, "tag right");
+					VP_CP_constraints.add(VP_CP_rWindowSize_spnr, "grow, span");
+					VP_CP_constraints.add(constraints_sampleres_sep, "growx, span");
+
+					VP_CP_from_spnr.addChangeListener(new ChangeListener(){
+						public void stateChanged(ChangeEvent arg0) {
+							setSizeRangeLower((int)VP_CP_from_spnr.getValue());
+						}
+					});
+
+					VP_CP_to_spnr.addChangeListener(new ChangeListener(){
+						public void stateChanged(ChangeEvent e) {
+							setSizeRangeHigher((int)VP_CP_to_spnr.getValue());
+						}
+					});
+
+					VP_CP_additional_spnr.addChangeListener(new ChangeListener(){
+						public void stateChanged(ChangeEvent e) {
+							setAdditionalGeneWeight((int)VP_CP_additional_spnr.getValue());
+						}
+					});
+
+					VP_CP_missing_spnr.addChangeListener(new ChangeListener(){
+						public void stateChanged(ChangeEvent e) {
+							setMissingGeneWeight((int)VP_CP_missing_spnr.getValue());
+						}
+					});
+
+					VP_CP_gapSize_spnr.addChangeListener(new ChangeListener(){
+						public void stateChanged(ChangeEvent e) {
+							setMaxGapSize((int)VP_CP_gapSize_spnr.getValue());
+						}
+					});
+
+					VP_CP_rWindowSize_spnr.addChangeListener(new ChangeListener(){
+						public void stateChanged(ChangeEvent e) {
+							setrWindowSize((int)VP_CP_rWindowSize_spnr.getValue());
+						}
+					});
+
+				}
+
+				VP_RP_sampleResults = new JPanel();{
+					VP_RP_sampleResults.setLayout(new MigLayout("", "[grow][grow]", "[][grow][]"));
+					VP_RP_sampleResults_lbl = new JLabel();
+					VP_RP_sampleResults_lbl.setText("Possible results: ");
+					VP_RP_sampleResults_text = new JTextArea();
+					VP_RP_sampleResults_scr = new JScrollPane(VP_RP_sampleResults_text);
+
+					VP_RP_back_btn = new JButton();
+					VP_RP_back_btn.setText("Back");
+					VP_RP_back_btn.setFont(fontButton);
+					VP_RP_back_btn.addActionListener(new ActionListener(){
+						@Override
+						public void actionPerformed(ActionEvent e) {
+							mainDisplay_pane.setEnabledAt(0, true);
+							mainDisplay_pane.setEnabledAt(1, false);
+							mainDisplay_pane.setEnabledAt(2, false);
+							mainDisplay_pane.setSelectedIndex(0);
+						}
+					});
+
+					VP_RP_next_btn = new JButton();
+					VP_RP_next_btn.setText("Next");
+					VP_RP_next_btn.setFont(fontButton);
+					
+					//VP_RP_buttons_panel.add(VP_RP_back_btn, "tag left");
+					//VP_RP_buttons_panel.add(VP_RP_next_btn, "tag right, wrap");
+					VP_RP_sampleResults.add(VP_RP_sampleResults_lbl, "grow, span");
+					VP_RP_sampleResults.add(VP_RP_sampleResults_scr, "grow, span");
+					VP_RP_sampleResults.add(VP_RP_back_btn, "tag left");
+					VP_RP_sampleResults.add(VP_RP_next_btn, "tag right, wrap");
+					
+					
+					VP_RP_next_btn.addActionListener(new ActionListener(){
+
+						@Override
+						public void actionPerformed(ActionEvent e) {
+							mainDisplay_pane.setEnabledAt(0, false);
+							mainDisplay_pane.setEnabledAt(1, false);
+							mainDisplay_pane.setEnabledAt(2, true);
+							mainDisplay_pane.setSelectedIndex(2);
+
+							solve = new ILPFormulation(dc.getGenomes(), dc.getGenes(), dc.getMap(), additionalGeneWeight, missingGeneWeight, sizeRangeLower, sizeRangeHigher, getMaxGapSize(), getrWindowSize(), isBasicFormulation(), isCommonIntervals(), isMaxGap(), isrWindows());
+							solve.generateGeneSets();
+							results = new ArrayList<GeneSet>();
+
+							System.out.println("result="+RConnector.checkLocalRserve());
+							try {
+								RConnection c=new RConnection();
+
+								results = solve.solve(c);
+								MD_RP_results_text.setText(solve.getOutput());
+								c.shutdown();
+
+
+							} catch (Exception x) {
+								System.out.println("R code error: "+x.getMessage());
+							};
+						}
+					});
+					
+					
+
+		
+					
+				}
+
+
+				MD_variables_panel.add(VP_FP_formulation, "growx, wrap");
+				MD_variables_panel.add(VP_CP_constraints, "growx, wrap");
+				MD_variables_panel.add(VP_RP_sampleResults, "growx, wrap");
+
+			}
+
+			MD_results_panel = new JPanel();{
+				MD_results_panel.setLayout(new MigLayout("", "[grow]", "[grow][]"));
+				MD_RP_results_text = new JTextArea();
+				MD_RP_results_text.setEditable(false);
+				MD_RP_results_scr = new JScrollPane(MD_RP_results_text);
+
+				MD_RP_back_btn = new JButton();
+				MD_RP_back_btn.setText("Back");
+				MD_RP_back_btn.setFont(fontButton);
+				MD_RP_back_btn.addActionListener(new ActionListener(){
+					@Override
+					public void actionPerformed(ActionEvent e) {
+						mainDisplay_pane.setEnabledAt(0, false);
+						mainDisplay_pane.setEnabledAt(1, true);
+						mainDisplay_pane.setEnabledAt(2, false);
+						mainDisplay_pane.setSelectedIndex(1);
+						MD_RP_results_text.setText("");
+					}
+				});
+
+				MD_RP_exportPDF_btn = new JButton();
+				MD_RP_exportPDF_btn.setText("Export PDF");
+				MD_RP_exportPDF_btn.setFont(fontButton);
+
+				MD_RP_exportCSV_btn = new JButton();
+				MD_RP_exportCSV_btn.setText("Export CSV");
+				MD_RP_exportCSV_btn.setFont(fontButton);
+
+				MD_results_panel.add(MD_RP_results_scr, "grow, span");
+				MD_results_panel.add(MD_RP_back_btn, "growx");
+				MD_results_panel.add(MD_RP_exportPDF_btn, "growx");
+				MD_results_panel.add(MD_RP_exportCSV_btn, "growx, span");
+
+				
+				
+
+				MD_RP_exportPDF_btn.addActionListener(new ActionListener(){
+					public void actionPerformed(ActionEvent e){
+						JFileChooser chooser = new JFileChooser(); 
+						chooser.setCurrentDirectory(new java.io.File("."));
+						chooser.setDialogTitle("Save as");
+						chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+						chooser.setAcceptAllFileFilterUsed(false);
+
+						JFileChooser fileChooser = new JFileChooser();
+						FileNameExtensionFilter pdfFilter = new FileNameExtensionFilter("PDF files", ".pdf");
+						fileChooser.setFileFilter(pdfFilter);
+						if (fileChooser.showSaveDialog(fileChooser) == JFileChooser.APPROVE_OPTION) {
+							File file = new File(fileChooser.getSelectedFile().getAbsolutePath());
+							System.out.println(fileChooser.getSelectedFile());
+							try {
+								ExportPDF exportPdf = new ExportPDF(file);
+								exportPdf.write("sdfhsdkfh");
+								exportPdf.save();
+								exportPdf.close();
+							} catch (IOException e1) {
+								// TODO Auto-generated catch block
+								e1.printStackTrace();
+							}
+							// save to file
+						}
+					}
+				});
+
+				MD_RP_exportCSV_btn.addActionListener(new ActionListener(){
+					public void actionPerformed(ActionEvent e){
+						JFileChooser chooser = new JFileChooser(); 
+						chooser.setCurrentDirectory(new java.io.File("."));
+						chooser.setDialogTitle("Save as");
+						chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+						chooser.setAcceptAllFileFilterUsed(false);
+						JFileChooser fileChooser = new JFileChooser();
+						FileNameExtensionFilter csvFilter = new FileNameExtensionFilter("CSV files", ".csv");
+						fileChooser.setFileFilter(csvFilter);
+						if (fileChooser.showSaveDialog(fileChooser) == JFileChooser.APPROVE_OPTION) {
+							File file = new File(fileChooser.getSelectedFile().getAbsolutePath());
+							System.out.println(fileChooser.getSelectedFile());
+							try {
+								FileWriter writer = new FileWriter(file);
+								ExportCSV exportCsv = new ExportCSV(writer);
+
+								writer.flush();
+								writer.close();
+							} catch (IOException e1) {
+								// TODO Auto-generated catch block
+								e1.printStackTrace();
+							}
+							// save to file
+						}
+					}
+				});
+			}
+			mainDisplay_pane.addTab("Input Data", MD_input_panel);
+			mainDisplay_pane.addTab("Constraints", MD_variables_panel);
+			mainDisplay_pane.addTab("Results",MD_results_panel);
+			mainDisplay_pane.setFont(fontButton);
+			mainDisplay_pane.setEnabledAt(1, false);
+			mainDisplay_pane.setEnabledAt(2, false);
 		}
 
-		resultsPanel.setLayout(new MigLayout("", "[grow]", "[grow][]"));
+
 		{
-			resultsArea = new JTextArea();
-			JScrollPane resultsScr = new JScrollPane(resultsArea);
-			JButton back = new JButton();
-			JButton exportPDF = new JButton();
-			JButton exportCSV = new JButton();
-			///String fileName = LocalDateTime.now().format(DateTimeFormatter.ofPattern("MM-dd-yyyy kk-mm-ss"));
 
-			back.setText("Back");
-			exportPDF.setText("Export PDF");
-			exportCSV.setText("Export CSV");
-
-			resultsPanel.add(resultsScr, "grow, span");
-			resultsPanel.add(back, "growx");
-			resultsPanel.add(exportPDF, "growx");
-			resultsPanel.add(exportCSV, "growx, span");
-
-			back.addActionListener(new ActionListener(){
-				@Override
-				public void actionPerformed(ActionEvent e) {
-					displayPane.setEnabledAt(0, false);
-					displayPane.setEnabledAt(1, true);
-					displayPane.setEnabledAt(2, false);
-					displayPane.setSelectedIndex(1);
-				}
-			});
-
-			exportPDF.addActionListener(new ActionListener(){
-				public void actionPerformed(ActionEvent e){
-					JFileChooser chooser = new JFileChooser(); 
-					chooser.setCurrentDirectory(new java.io.File("."));
-					chooser.setDialogTitle("Save as");
-					chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
-					chooser.setAcceptAllFileFilterUsed(false);
-
-					JFileChooser fileChooser = new JFileChooser();
-					FileNameExtensionFilter pdfFilter = new FileNameExtensionFilter("PDF files", ".pdf");
-					fileChooser.setFileFilter(pdfFilter);
-					if (fileChooser.showSaveDialog(fileChooser) == JFileChooser.APPROVE_OPTION) {
-						File file = new File(fileChooser.getSelectedFile().getAbsolutePath());
-						System.out.println(fileChooser.getSelectedFile());
-						try {
-							ExportPDF exportPdf = new ExportPDF(file);
-							exportPdf.write("sdfhsdkfh");
-							exportPdf.save();
-							exportPdf.close();
-						} catch (IOException e1) {
-							// TODO Auto-generated catch block
-							e1.printStackTrace();
-						}
-						// save to file
-					}
-				}
-			});
-
-			exportCSV.addActionListener(new ActionListener(){
-				public void actionPerformed(ActionEvent e){
-					JFileChooser chooser = new JFileChooser(); 
-					chooser.setCurrentDirectory(new java.io.File("."));
-					chooser.setDialogTitle("Save as");
-					chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
-					chooser.setAcceptAllFileFilterUsed(false);
-					JFileChooser fileChooser = new JFileChooser();
-					FileNameExtensionFilter csvFilter = new FileNameExtensionFilter("CSV files", ".csv");
-					fileChooser.setFileFilter(csvFilter);
-					if (fileChooser.showSaveDialog(fileChooser) == JFileChooser.APPROVE_OPTION) {
-						File file = new File(fileChooser.getSelectedFile().getAbsolutePath());
-						System.out.println(fileChooser.getSelectedFile());
-						try {
-							FileWriter writer = new FileWriter(file);
-							ExportCSV exportCsv = new ExportCSV(writer);
-
-							writer.flush();
-							writer.close();
-						} catch (IOException e1) {
-							// TODO Auto-generated catch block
-							e1.printStackTrace();
-						}
-						// save to file
-					}
-				}
-			});
 		}
 
 	}
@@ -658,6 +829,16 @@ public class Main {
 		Main window = new Main();
 		window.frame.setVisible(true);
 
+	}
+
+
+	public int getNumOfGenomes() {
+		return numOfGenomes;
+	}
+
+
+	public void setNumOfGenomes(int numOfGenomes) {
+		this.numOfGenomes = numOfGenomes;
 	}
 
 }

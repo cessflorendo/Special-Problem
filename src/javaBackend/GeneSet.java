@@ -5,12 +5,22 @@ public class GeneSet {
 	private ArrayList<Gene> geneSet;
 	private ArrayList<Integer> geneContent;
 	private String strRep;
+	private int strSum;
+	private int positionStart;
 
 	public GeneSet(ArrayList<Gene> genes, ArrayList<Gene> allGenes){
 		this.geneSet = genes;
 		this.setGeneContent(genes);
 		this.setStrRep(allGenes);
 	}
+	
+	public GeneSet(ArrayList<Gene> genes, ArrayList<Gene> allGenes, int positionStart){
+		this.geneSet = genes;
+		this.setGeneContent(genes);
+		this.setStrRep(allGenes);
+		this.positionStart = positionStart;
+	}
+	
 
 	public void add(Gene g){
 		this.geneSet.add(g);
@@ -26,6 +36,14 @@ public class GeneSet {
 
 	public void setGeneSet(ArrayList<Gene> genes){
 		this.geneSet = genes;
+	}
+	
+	public void setPositionStart(int positionStart){
+		this.positionStart = positionStart;
+	}
+	
+	public int getPositionStart(){
+		return this.positionStart;
 	}
 
 	public void setGeneContent(ArrayList<Gene> genes) {
@@ -48,9 +66,11 @@ public class GeneSet {
 	
 	public void setStrRep(ArrayList<Gene> allGenes){
 		this.strRep = "";
+		this.strSum = 0;
 		for(int i=0; i<allGenes.size(); i++){
 			if(geneContent.contains(allGenes.get(i).getGeneNumberRep())){
 				this.strRep += "1,";
+				this.strSum += 1;
 			} else {
 				this.strRep += "0,";
 			}
@@ -73,5 +93,13 @@ public class GeneSet {
 		for(int i=0; i<geneSet.size(); i++){
 			System.out.print(geneSet.get(i).getGeneName() + " ");
 		} System.out.println();
+	}
+
+	public int getStrSum() {
+		return strSum;
+	}
+
+	public void setStrSum(int strSum) {
+		this.strSum = strSum;
 	}
 }

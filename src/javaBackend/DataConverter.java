@@ -58,6 +58,10 @@ public class DataConverter {
 		return this.allGenomes;
 	}
 	
+	public int getNumberOfGenomes(){
+		return this.allGenomes.size();
+	}
+	
 	public ArrayList<Genome> getConvertedGenomes(){
 		return this.convertedAllGenomes;
 	}
