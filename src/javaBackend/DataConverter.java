@@ -85,6 +85,7 @@ public class DataConverter {
 		}
 	}
 	
+	/*
 	public String getAllGenomes(){
 		StringBuilder sb = new StringBuilder();
 		for(int i=0; i<allGenomes.size(); i++){
@@ -94,8 +95,21 @@ public class DataConverter {
 			} sb.append("\n");
 		}
 		return sb.toString();
+	}*/
+	
+	public String getAllGenomes(){
+		String res = "";
+		for(int i=0; i<allGenomes.size(); i++){
+			res += "<b>" + allGenomes.get(i).getGenomeName() + "</b> : ";
+			for(int j=0; j<allGenomes.get(i).size(); j++){
+				res += allGenomes.get(i).getGene(j).getGeneName() + " ";
+			} res += "<br>";
+			
+		}
+		return res;
 	}
 	
+	/*
 	public String getAllConvertedGenomes(){
 		StringBuilder sb = new StringBuilder();
 		for(int i=0; i<allGenomes.size(); i++){
@@ -105,6 +119,18 @@ public class DataConverter {
 			} sb.append("\n");
 		}
 		return sb.toString();
+	}*/
+	
+	public String getAllConvertedGenomes(){
+		String res = "";
+		for(int i=0; i<allGenomes.size(); i++){
+			res += "<b>" + allGenomes.get(i).getGenomeName() + "</b> : ";
+			for(int j=0; j<allGenomes.get(i).size(); j++){
+				res += allGenomes.get(i).getGene(j).getGeneNumberRep() + " ";
+			} res += "<br>";
+			
+		}
+		return res;
 	}
 
 	public void printAllConvertedGenomes(){
