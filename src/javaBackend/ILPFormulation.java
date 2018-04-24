@@ -182,7 +182,7 @@ public class ILPFormulation {
 								int noOfGenes = c.eval(command.toString()).asInteger();
 								//System.out.println("interval: " + noOfGenes);
 								
-								command.append("sum(intersection==-1)\n");
+								command.append("sum(intersection==1)\n");
 								int cost = c.eval(command.toString()).asInteger();
 								//System.out.println("cost: " + cost);
 								//System.out.println(cost);
@@ -191,7 +191,7 @@ public class ILPFormulation {
 									cost = 0;
 									//System.out.println(intervals.get(j).get(k));
 									
-								} else cost = 1; 
+								}
 								
 								obj.append(cost+",");
 								mat.append("1,");
