@@ -429,7 +429,7 @@ public class Main {
 
 
 			MD_variables_panel = new JPanel();{
-				MD_variables_panel.setLayout(new MigLayout("", "[grow]", "[][][]"));
+				MD_variables_panel.setLayout(new MigLayout("", "[grow]", "[][][grow]"));
 				MD_variables_panel.setBackground(backgroundColor);
 				formulation_constraints_sep = new JSeparator();
 				constraints_sampleres_sep = new JSeparator();
@@ -701,7 +701,7 @@ public class Main {
 
 				MD_variables_panel.add(VP_FP_formulation, "growx, wrap");
 				MD_variables_panel.add(VP_CP_constraints, "growx, wrap");
-				MD_variables_panel.add(VP_RP_sampleResults, "growx, wrap");
+				MD_variables_panel.add(VP_RP_sampleResults, "grow, wrap");
 
 			}
 
