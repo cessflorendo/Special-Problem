@@ -48,6 +48,18 @@ public class DataConverter {
 		}
 		//printStuff();
 		//printAllGenes();
+		replaceNonHomologs();
+	}
+	
+	public void replaceNonHomologs(){
+		for(int i=0; i<allGenomes.size(); i++){
+			for(int j=0; j<allGenomes.get(i).getGenes().size(); j++){
+				if(map.getMappingOccurence(allGenomes.get(i).getGenes().get(j).getGeneName()) == 1){
+					allGenomes.get(i).getGenes().get(j).setGeneNumberRep(0);
+
+				}
+			}
+		}
 	}
 	
 	public MapStringArrayList getMap(){

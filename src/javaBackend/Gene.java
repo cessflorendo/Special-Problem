@@ -47,4 +47,13 @@ public class Gene {
 	public boolean isActive(){
 		return this.included;
 	}
+	
+	public boolean equals(Gene gene){
+		if(this.geneRep == gene.getGeneNumberRep()){
+			return true;
+		}
+		
+		return false;
+	}
+
 }

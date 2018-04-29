@@ -12,11 +12,11 @@ public class ILPFormulation {
 	private ArrayList<ArrayList<GeneSet>> intervals;
 	private MapStringArrayList map;
 	private int totalNoOfIntervals;
-	private int additionalGeneWeight, missingGeneWeight, sizeRangeLower, sizeRangeHigher, maxGapSize, rWindowSize;
+	private int additionalGeneWeight, missingGeneWeight, sizeRangeLower, sizeRangeHigher, maxGapSize, kWindowSize;
 	private boolean basicFormulation,  commonIntervals,  maxGap,  rWindows;
 	private String output;
 
-	public ILPFormulation(ArrayList<Genome> genomes, ArrayList<Gene> genes, MapStringArrayList map, int additionalGeneWeight, int missingGeneWeight, int sizeRangeLower, int sizeRangeHigher, int maxGapSize, int rWindowSize, boolean basicFormulation, boolean commonIntervals, boolean maxGap, boolean rWindows){
+	public ILPFormulation(ArrayList<Genome> genomes, ArrayList<Gene> genes, MapStringArrayList map, int additionalGeneWeight, int missingGeneWeight, int sizeRangeLower, int sizeRangeHigher, int maxGapSize, int kWindowSize, boolean basicFormulation, boolean commonIntervals, boolean maxGap, boolean rWindows){
 		this.genomes = genomes;
 		this.genes = genes;
 		this.referenceGeneSet = new ArrayList<GeneSet>();
@@ -28,7 +28,7 @@ public class ILPFormulation {
 		this.maxGap = maxGap;
 		this.rWindows = rWindows;
 		this.maxGapSize = maxGapSize;
-		this.rWindowSize = rWindowSize;
+		this.kWindowSize = kWindowSize;
 
 		this.setAdditionalGeneWeight(additionalGeneWeight);
 		this.setMissingGeneWeight(missingGeneWeight);
@@ -38,30 +38,24 @@ public class ILPFormulation {
 	}
 
 	public void generateGeneSets(){
-		//replaceNonHomologs();
 		if (commonIntervals){
 			maxGapSize = 0;
 			additionalGeneWeight = 1;
 			missingGeneWeight = 1;
-			//replaceNonHomologs();
 		}
 
 		else if(maxGap){
 			additionalGeneWeight = 0;
 			missingGeneWeight = 0;
-			//replaceNonHomologs();
 		}
 
 		else if(rWindows){
 			additionalGeneWeight = 0;
 			missingGeneWeight = 1;
-			//replaceNonHomologs();
+			maxGapSize = sizeRangeHigher - kWindowSize;
+			sizeRangeLower = sizeRangeHigher;
 		}
-
-		else{
-			//maxgap = infinity;
-		}
-
+		
 		for(int i=0; i<genomes.size(); i++){
 			ArrayList<GeneSet> partitions = partitionList(genomes.get(i), this.maxGapSize, this.sizeRangeLower, this.sizeRangeHigher);
 			genomes.get(i).setPartitions(partitions);
@@ -70,7 +64,6 @@ public class ILPFormulation {
 			totalNoOfIntervals += partitions.size();
 		} printPartitions(referenceGeneSet);
 		printIntervals();
-		//printGenes();
 	}
 
 	private ArrayList<GeneSet> partitionList (Genome genome, int maxgap, int sizeRangeLower, int sizeRangeHigher) {
@@ -89,7 +82,7 @@ public class ILPFormulation {
 						genes.add(genome.getGene(j));
 						continue;
 					}
-					else if(commonIntervals || maxGap){
+					else if(commonIntervals || maxGap || rWindows){
 						if(list.get(j)!=0 && gapCounter <= maxgap){
 							genes.add(genome.getGene(j));
 							continue;
@@ -112,7 +105,7 @@ public class ILPFormulation {
 						}
 						continue;
 					}
-					else if(commonIntervals || maxGap){
+					else if(commonIntervals || maxGap || rWindows){
 						if(list.get(j)!=0 && gapCounter <= maxgap){
 							genes.add(genome.getGene(j));
 							GeneSet newGeneSet = new GeneSet(new ArrayList<Gene>(genes), this.genes, i);
@@ -150,8 +143,8 @@ public class ILPFormulation {
 	}
 
 	public ArrayList<GeneSet> solve(RConnection c) throws RserveException, REXPMismatchException{
-		if(basicFormulation || commonIntervals || maxGap){
-			StringBuilder ilp = new StringBuilder("");
+		if(basicFormulation || commonIntervals || maxGap || rWindows){
+			StringBuilder ilp = new StringBuilder("");		
 			//ilp.append("install.packages('lpSolve')\n");
 			ilp.append("library(lpSolve)\n");
 			int[] costs = new int[referenceGeneSet.size()];
@@ -176,26 +169,17 @@ public class ILPFormulation {
 								command.append("refset = c(" + referenceGeneSet.get(i).toString() + ")\n");
 								command.append("interval = c(" + intervals.get(j).get(k).toString() + ")\n");
 								command.append("intersection = refset-interval\n");
-								
 								command.append("sum(interval)\n");
-								
-								int noOfGenes = c.eval(command.toString()).asInteger();
-								//System.out.println("interval: " + noOfGenes);
-								
 								command.append("sum(intersection==1)\n");
 								int cost = c.eval(command.toString()).asInteger();
-								//System.out.println("cost: " + cost);
-								//System.out.println(cost);
 								if(cost <= maxGapSize){
-								//if(noOfGenes - cost - maxGapSize >= sizeRangeLower){
 									cost = 0;
-									//System.out.println(intervals.get(j).get(k));
-									
 								}
 								
 								obj.append(cost+",");
 								mat.append("1,");
 							}
+							
 							else{
 								StringBuilder command = new StringBuilder("");
 								command.append("refset = c(" + referenceGeneSet.get(i).toString() + ")\n");
@@ -235,12 +219,12 @@ public class ILPFormulation {
 
 					String finalSb = new String();
 					finalSb = ilp.toString() + obj.toString() + mat.toString() + dir.toString() + rhs.toString() + lpS.toString();
-					System.out.println(finalSb);
+					//System.out.println(finalSb);
 					costs[i] = (int) Math.round(Double.parseDouble(c.eval(finalSb).asString()));
 
-					referenceGeneSet.get(i).print();
-					System.out.println(costs[i]);
-					System.out.println();
+					//referenceGeneSet.get(i).print();
+					//System.out.println(costs[i]);
+					//System.out.println();
 				}
 
 			} catch (Exception x) {
@@ -250,85 +234,6 @@ public class ILPFormulation {
 
 			return getMinimalReferenceGeneSets(c, costs);
 		}
-		/*
-
-		if(maxGap){
-			StringBuilder ilp = new StringBuilder("");
-			//ilp.append("install.packages('lpSolve')\n");
-			ilp.append("library(lpSolve)\n");
-			int[] costs = new int[referenceGeneSet.size()];
-
-			try {
-				for(int i=0; i<referenceGeneSet.size(); i++){
-					StringBuilder obj = new StringBuilder("obj = c(");
-					StringBuilder mat = new StringBuilder("mat = matrix(c(");
-					StringBuilder dir = new StringBuilder("dir = c(");
-					StringBuilder rhs = new StringBuilder("rhs = c(");
-					StringBuilder lpS = new StringBuilder("ilp = ");
-					int initial = 0;
-
-					for(int j=0; j<intervals.size(); j++){
-						for(int l=0; l<initial; l++){
-							mat.append("0,");
-						}
-
-						for(int k=0; k<intervals.get(j).size(); k++){
-							StringBuilder command = new StringBuilder("");
-							command.append("refset = c(" + referenceGeneSet.get(i).toString() + ")\n");
-							command.append("interval = c(" + intervals.get(j).get(k).toString() + ")\n");
-							command.append("intersection = refset-interval\n");
-							command.append("cost =  1*sum(intersection==-1)\n");
-							int cost = c.eval(command.toString()).asInteger();
-							if(cost > maxGapSize) cost -= maxGapSize;
-							else if(cost == maxGapSize) cost = 0;
-
-							obj.append(cost+",");
-							mat.append("1,");
-						}
-						initial += intervals.get(j).size();
-
-						for(int l=0; l<(totalNoOfIntervals-initial); l++){
-							mat.append("0,");
-						}
-
-						dir.append("'=',");
-						rhs.append("1,");
-
-					} 
-
-					obj.deleteCharAt(obj.length()-1);
-					obj.append(")\n");
-
-					mat.deleteCharAt(mat.length()-1);
-					mat.append("),nrow=" + intervals.size() + ", byrow=TRUE)\n");
-
-					dir.deleteCharAt(dir.length()-1);
-					dir.append(")\n");
-
-					rhs.deleteCharAt(rhs.length()-1);
-					rhs.append(")\n");
-
-					lpS.append("lp('min', obj, mat, dir, rhs, all.int=TRUE)\n");
-					lpS.append("ilp$objval");
-
-					String finalSb = new String();
-					finalSb = ilp.toString() + obj.toString() + mat.toString() + dir.toString() + rhs.toString() + lpS.toString();
-					referenceGeneSet.get(i).print();
-					//System.out.println(referenceGeneSet.get(i).getStrSum());
-					//System.out.println();
-					//System.out.println(finalSb);
-					costs[i] = (int) Math.round(Double.parseDouble(c.eval(finalSb).asString()));
-					System.out.println(costs[i]);
-				}
-
-			} catch (Exception x) {
-				System.out.println("R code error: "+x.getMessage());
-			};
-
-
-
-			return getMinimalReferenceGeneSets(c, costs);
-//		} */
 
 		else return null;
 	}
@@ -360,6 +265,14 @@ public class ILPFormulation {
 				}
 			} else if(maxGap){
 				if(costs[i]==0){
+					referenceGeneSet.get(i).print();
+					if(!results.contains(referenceGeneSet.get(i))){
+						results.add(referenceGeneSet.get(i));
+					}
+				}
+			} else if(rWindows){
+				if(costs[i]==minimum){
+					referenceGeneSet.get(i).print();
 					if(!results.contains(referenceGeneSet.get(i))){
 						results.add(referenceGeneSet.get(i));
 					}
@@ -376,7 +289,7 @@ public class ILPFormulation {
 		if(maxGap){
 			format += "Max gap = " + this.maxGapSize + "\n";
 		} else if(rWindows){
-			format += "r = " + this.rWindowSize + "\n";
+			format += "r = " + this.kWindowSize + "\n";
 		}
 		if(results.size() > 0){
 
@@ -454,12 +367,12 @@ public class ILPFormulation {
 		}
 	}
 
-	public int getrWindowSize() {
-		return rWindowSize;
+	public int getkWindowSize() {
+		return kWindowSize;
 	}
 
-	public void setrWindowSize(int rWindowSize) {
-		this.rWindowSize = rWindowSize;
+	public void setkWindowSize(int kWindowSize) {
+		this.kWindowSize = kWindowSize;
 	}
 
 	public ArrayList<GeneSet> getReferenceGeneSet() {

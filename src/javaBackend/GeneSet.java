@@ -3,24 +3,25 @@ import java.util.ArrayList;
 
 public class GeneSet {
 	private ArrayList<Gene> geneSet;
-	private ArrayList<Integer> geneContent;
+	private ArrayList<String> geneContentStr;
+	//private ArrayList<Integer> geneContent;
 	private String strRep;
 	private int strSum;
 	private int positionStart;
 
 	public GeneSet(ArrayList<Gene> genes, ArrayList<Gene> allGenes){
 		this.geneSet = genes;
-		this.setGeneContent(genes);
+		this.setGeneContentStr(genes);
 		this.setStrRep(allGenes);
 	}
-	
+
 	public GeneSet(ArrayList<Gene> genes, ArrayList<Gene> allGenes, int positionStart){
 		this.geneSet = genes;
-		this.setGeneContent(genes);
+		this.setGeneContentStr(genes);
 		this.setStrRep(allGenes);
 		this.positionStart = positionStart;
 	}
-	
+
 
 	public void add(Gene g){
 		this.geneSet.add(g);
@@ -37,51 +38,86 @@ public class GeneSet {
 	public void setGeneSet(ArrayList<Gene> genes){
 		this.geneSet = genes;
 	}
-	
+
 	public void setPositionStart(int positionStart){
 		this.positionStart = positionStart;
 	}
-	
+
 	public int getPositionStart(){
 		return this.positionStart;
 	}
 
+	/*
 	public void setGeneContent(ArrayList<Gene> genes) {
 		this.geneContent = new ArrayList<Integer>();
+		this.geneContentStr = new ArrayList<String>();
 		for(int i=0; i<genes.size(); i++){
 			if(!geneContent.contains(genes.get(i).getGeneNumberRep())){
 				geneContent.add(genes.get(i).getGeneNumberRep());
 			}
+			
+			if(!geneContentStr.contains(genes.get(i).getGeneName())){
+				geneContentStr.add(genes.get(i).getGeneName());
+			}
 		}
 	}
+	*/
 	
+	public void setGeneContentStr(ArrayList<Gene> genes){
+		this.geneContentStr = new ArrayList<String>();
+		for(int i=0; i<genes.size(); i++){
+			if(!geneContentStr.contains(genes.get(i).getGeneName())){
+				geneContentStr.add(genes.get(i).getGeneName());
+			}
+		}
+	}
+
+	public ArrayList<String> getGeneContentStr(){
+		return this.geneContentStr;
+	}
+	/*
 	public ArrayList<Integer> getGeneContent(){
 		return this.geneContent;
 	}
 	
-	public boolean equals(Object geneSet){
-		if(this.geneContent.equals(((GeneSet) geneSet).getGeneContent())) return true;		
-		return false;
+	public void printGeneContent(){
+		for(int i=0; i<geneContent.size(); i++){
+			System.out.print(geneContent.get(i) + ",");
+		}
+		System.out.println();
 	}
+
+	*/
 	
+	
+	public boolean equals(Object geneSet){
+		if(this.geneContentStr.equals(((GeneSet) geneSet).getGeneContentStr())) return true;		
+		return false;
+	} 
+
 	public void setStrRep(ArrayList<Gene> allGenes){
 		this.strRep = "";
-		this.strSum = 0;
+		int strSum = 0;
 		for(int i=0; i<allGenes.size(); i++){
-			if(geneContent.contains(allGenes.get(i).getGeneNumberRep())){
+			System.out.print(allGenes.get(i).getGeneName()+ ": ");
+			if(geneContentStr.contains(allGenes.get(i).getGeneName())){
 				this.strRep += "1,";
-				this.strSum += 1;
-			} else {
+				strSum += 1;
+				System.out.println("1");
+			} else{
+				System.out.println("0");
 				this.strRep += "0,";
 			}
 		}
+		
+		this.setStrSum(strSum);
 		this.strRep = this.strRep.substring(0, strRep.length() - 1);
 	}
-	
+
 	public String toString(){
 		return strRep;
 	}
-	
+
 	public String toOrigString(){
 		String res = "";
 		for(int i=0; i<this.geneSet.size(); i++){

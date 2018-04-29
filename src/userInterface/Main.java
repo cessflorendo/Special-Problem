@@ -25,6 +25,7 @@ import javax.swing.JRadioButton;
 import javax.swing.JScrollPane;
 import javax.swing.JSeparator;
 import javax.swing.JSpinner;
+import javax.swing.JSpinner.DefaultEditor;
 import javax.swing.JTabbedPane;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
@@ -166,9 +167,11 @@ public class Main {
 		orangenormal = Color.decode("#ffc492");
 		orangedark = Color.decode("#ff7f00");
 		bluelight = Color.decode("#dcfffe");
-		backgroundColor = Color.decode("#dcfffe");
+		//backgroundColor = Color.decode("#dcfffe");
+		backgroundColor = Color.white;
 		bluenormal = Color.decode("#279ecc");
-		buttonColor = Color.decode("#279ecc");
+		//buttonColor = Color.decode("#279ecc");
+		buttonColor = Color.gray;
 		bluedark = Color.decode("#0080ff");
 		white = Color.decode("#ebedec");
 		greenlight = Color.decode("#ddffee");
@@ -506,6 +509,8 @@ public class Main {
 							} else VP_CP_gapSize_spnr.setEnabled(false);
 
 							if(VP_FP_rWindows_rbtn.isSelected()){
+								VP_CP_from_spnr.setEnabled(false);	
+								VP_CP_to_spnr.setEnabled(true);
 								VP_CP_missing_spnr.setEnabled(false);
 								VP_CP_missing_spnr.setValue(1);
 								VP_CP_additional_spnr.setEnabled(false);
@@ -564,7 +569,7 @@ public class Main {
 					VP_CP_gapSize_spnr.setFont(fontPlain);
 
 					VP_CP_rWindowSize_Lbl = new JLabel();
-					VP_CP_rWindowSize_Lbl.setText("r Size: ");
+					VP_CP_rWindowSize_Lbl.setText("k Size: ");
 					VP_CP_rWindowSize_Lbl.setFont(fontPlain);
 
 					VP_CP_rWindowSize_spnr = new JSpinner();
