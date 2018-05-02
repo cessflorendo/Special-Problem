@@ -30,7 +30,9 @@ import javax.swing.JScrollPane;
 import javax.swing.JSeparator;
 import javax.swing.JSpinner;
 import javax.swing.JTabbedPane;
+import javax.swing.JTextArea;
 import javax.swing.JTextField;
+import javax.swing.JTextPane;
 import javax.swing.SpinnerNumberModel;
 import javax.swing.SwingConstants;
 import javax.swing.UIManager;
@@ -62,7 +64,7 @@ public class Main {
 	private JPanel HS_buttons_panel;
 	private JButton HS_start_button;
 	private JButton HS_instructions_button;
-	private BufferedImage HS_logo;
+	private ImageIcon HS_logo;
 	private JTabbedPane instructions_pane;
 	private JLabel HS_pic_label;
 	private JTabbedPane mainDisplay_pane;
@@ -119,7 +121,7 @@ public class Main {
 	private JButton MD_RP_exportCSV_btn;
 	private JButton MD_RP_exportPDF_btn;
 	private JButton MD_RP_back_btn;
-	
+
 	private Font fontPlain;
 	private Font fontButton;
 	private Color buttonColor;
@@ -129,7 +131,10 @@ public class Main {
 	private JScrollPane IP_general_text_scr;
 	private JScrollPane IP_constraints_text_scr;
 	private JScrollPane IP_limitations_text_scr;
-	private JPanel VP_RP_buttons; 
+	private JPanel VP_RP_buttons;
+	private JPanel HS_details_panel;
+	private JTextPane HS_name_lbl;
+	private Font fontTitle; 
 
 	public Main(){
 		this.setAdditionalGeneWeight(0);
@@ -142,27 +147,33 @@ public class Main {
 		this.setCommonIntervals(false);
 		this.setMaxGap(false);
 		this.setrWindows(false);
+		fontTitle = new Font("Lucida Sans Unicode", Font.PLAIN, 48);
 		fontButton = new Font("Lucida Sans Unicode", Font.BOLD, 14);
 		fontText = new Font("Lucida Sans Unicode", Font.PLAIN, 14);
 		fontPlain =  new Font("Lucida Sans Unicode", Font.PLAIN, 14);
 		backgroundColor = Color.decode("#BB649B");
-		
+
 		backgroundColor = Color.decode("#FEFCFC");
 		buttonColor = Color.decode("#94206B");
-		buttonTextColor = Color.decode("#DAC3D2");
-		
+		buttonTextColor = Color.decode("#FEFCFD");
+
 		//buttonColor = Color.gray;
 		initialize();
 	}
 
 
 	private void initialize(){
+		Color trial = Color.decode("#C1B6CA");
+		UIManager.put("TabbedPane.unselectedBackground", trial);
+		UIManager.put("TabbedPane.selected", buttonColor);
+		UIManager.put("TabbedPane.font", fontButton);
+		UIManager.put("TabbedPane.tabInsets", new Insets(10,10,10,10));
 
 		frame = new JFrame();
 		frame.addWindowListener(new WindowListener(){
 
 			public void windowActivated(WindowEvent arg0) {}
-			
+
 			public void windowClosed(WindowEvent arg0) {}
 
 			public void windowClosing(WindowEvent arg0) {
@@ -183,15 +194,16 @@ public class Main {
 			public void windowIconified(WindowEvent arg0) {}
 
 			public void windowOpened(WindowEvent arg0) {}
-			
+
 		});
 		frame.setTitle("Approximate Gene Cluster Tool");
 		frame.setMinimumSize(new Dimension(800,600));
+		frame.setResizable(false);
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		frame.setIconImage(new ImageIcon("images/icon1.png").getImage());
 		homeScreen = new JPanel();
 		homeScreen.setBackground(backgroundColor);
-		homeScreen.setLayout(new MigLayout("", "[grow]", "[grow][]"));
+		homeScreen.setLayout(new MigLayout("", "[grow][grow]", "[grow][grow][]"));
 		frame.add(homeScreen);
 
 		frame.setBackground(backgroundColor);
@@ -200,72 +212,92 @@ public class Main {
 
 			HS_title_panel = new JPanel();
 			{
+				HS_title_panel.setLayout(new MigLayout("", "[grow][grow]", "[grow]"));
 				HS_title_panel.setBackground(backgroundColor);
 				HS_pic_label = new JLabel();
 				HS_logo = null;
-				try {
-					HS_logo = ImageIO.read(new File("images/logo.png"));
-					HS_pic_label = new JLabel(new ImageIcon(HS_logo));
-					HS_title_panel.add(HS_pic_label, "center");
-				} catch (IOException e) {
-					e.printStackTrace();
+
+				Image logoImg = new ImageIcon("images/icon1.png").getImage();
+				logoImg = logoImg.getScaledInstance(200, 200, java.awt.Image.SCALE_SMOOTH);
+				HS_logo= new ImageIcon(logoImg);
+				HS_pic_label = new JLabel(HS_logo);
+				
+				HS_name_lbl = new JTextPane();
+				HS_name_lbl.setEditable(false);
+				HS_name_lbl.setMargin(new Insets(60, 20, 0, 0));
+				HS_name_lbl.setBackground(backgroundColor);
+				HS_name_lbl.setForeground(buttonColor);
+				HS_name_lbl.setText("Approximate Gene Cluster Discovery Tool");
+				HS_name_lbl.setFont(fontTitle);
+				
+	
+				HS_title_panel.add(HS_pic_label, "grow");
+				HS_title_panel.add(HS_name_lbl, "grow, span");
+			}
+
+			HS_details_panel = new JPanel();
+			{
+				Color details = Color.decode("#E99FA6");
+				HS_details_panel.setBackground(details);
+			}
+			
+			Image img = new ImageIcon("images/arrow-point-to-right.png").getImage();
+			img = img.getScaledInstance(40, 40,  java.awt.Image.SCALE_SMOOTH);
+			ImageIcon startIcon = new ImageIcon(img);
+			HS_start_button = new JButton(startIcon);
+			HS_start_button.setText("Start");
+			//HS_start_button.setIcon((Icon) new ImageIcon("images/icon1.png").getImage());
+
+
+			HS_start_button.setFont(fontButton);
+			HS_start_button.setForeground(buttonTextColor);
+			HS_start_button.setBackground(buttonColor);
+
+			HS_start_button.addActionListener(new ActionListener(){
+				@Override
+				public void actionPerformed(ActionEvent arg0) {
+					frame.remove(homeScreen);
+					frame.setContentPane(mainDisplay_pane);
+					frame.setResizable(true);
+					frame.revalidate(); 
+					frame.repaint();	
 				}
-			}
 
-			HS_buttons_panel = new JPanel();{
-				HS_buttons_panel.setLayout(new MigLayout("", "[grow][grow]", "[]"));
-				HS_buttons_panel.setBackground(backgroundColor);
+			});
 
-				Image img = new ImageIcon("images/arrow-point-to-right.png").getImage();
-				img = img.getScaledInstance(40, 40,  java.awt.Image.SCALE_SMOOTH);
-				ImageIcon startIcon = new ImageIcon(img);
-				HS_start_button = new JButton(startIcon);
-				HS_start_button.setText("Start");
-				//HS_start_button.setIcon((Icon) new ImageIcon("images/icon1.png").getImage());
-				
-				
-				HS_start_button.setFont(fontButton);
-				HS_start_button.setForeground(buttonTextColor);
-				HS_start_button.setBackground(buttonColor);
-				
-				HS_start_button.addActionListener(new ActionListener(){
-					@Override
-					public void actionPerformed(ActionEvent arg0) {
-						frame.remove(homeScreen);
-						frame.setContentPane(mainDisplay_pane);
-						frame.revalidate(); 
-						frame.repaint();	
-					}
+			Image instruImg = new ImageIcon("images/instructions.png").getImage();
+			instruImg = instruImg.getScaledInstance(40, 40,  java.awt.Image.SCALE_SMOOTH);
+			ImageIcon instruIcon = new ImageIcon(instruImg);
+			HS_instructions_button = new JButton(instruIcon);
+			HS_instructions_button.setText("Getting Started");
+			HS_instructions_button.setFont(fontButton);
+			HS_instructions_button.setForeground(buttonTextColor);
+			HS_instructions_button.setBackground(buttonColor);
 
-				});
+			HS_instructions_button.addActionListener(new ActionListener(){
+				public void actionPerformed(ActionEvent e){
+					frame.remove(frame.getContentPane());
+					frame.setContentPane(instructions_pane);
+					frame.revalidate(); 
+					frame.repaint();
+				}
+			});
 
-				Image instruImg = new ImageIcon("images/instructions.png").getImage();
-				instruImg = instruImg.getScaledInstance(40, 40,  java.awt.Image.SCALE_SMOOTH);
-				ImageIcon instruIcon = new ImageIcon(instruImg);
-				HS_instructions_button = new JButton(instruIcon);
-				HS_instructions_button.setText("Getting Started");
-				HS_instructions_button.setFont(fontButton);
-				HS_instructions_button.setForeground(buttonTextColor);
-				HS_instructions_button.setBackground(buttonColor);
-				
-				HS_instructions_button.addActionListener(new ActionListener(){
-					public void actionPerformed(ActionEvent e){
-						frame.remove(frame.getContentPane());
-						frame.setContentPane(instructions_pane);
-						frame.revalidate(); 
-						frame.repaint();
-					}
-				});
-
-				HS_buttons_panel.add(HS_start_button, "grow");
-				HS_buttons_panel.add(HS_instructions_button, "grow");
-			}
+			//	HS_buttons_panel.add(HS_start_button, "grow");
+			//	HS_buttons_panel.add(HS_instructions_button, "grow");
+			//}
 		}
 
 		homeScreen.add(HS_title_panel, "grow, span");
-		homeScreen.add(HS_buttons_panel, "grow");
+		homeScreen.add(HS_details_panel, "grow, span");
+		
+		homeScreen.add(HS_start_button, "grow");
+		homeScreen.add(HS_instructions_button, "grow");
+		//homeScreen.add(HS_buttons_panel, "grow");
 
-		instructions_pane = new JTabbedPane(JTabbedPane.TOP);{
+		instructions_pane = new JTabbedPane(JTabbedPane.TOP);
+		instructions_pane.setForeground(buttonTextColor);
+		{
 			instructions_pane.setFont(fontButton);
 			IP_mainMenu_listener = new ActionListener(){
 				public void actionPerformed(ActionEvent arg0) {	
@@ -279,7 +311,7 @@ public class Main {
 			IP_general = new JPanel();{
 				IP_general.setLayout(new MigLayout("", "[grow]", "[grow][]"));
 				IP_general.setBackground(backgroundColor);
-				
+
 				Image backImg = new ImageIcon("images/arrow-point-to-left.png").getImage();
 				backImg = backImg.getScaledInstance(25, 25,  java.awt.Image.SCALE_SMOOTH);
 				ImageIcon backIcon = new ImageIcon(backImg);
@@ -289,20 +321,22 @@ public class Main {
 				IP_mainMenu1.setBackground(buttonColor);
 				IP_mainMenu1.setForeground(buttonTextColor);
 				IP_mainMenu1.addActionListener(IP_mainMenu_listener);
-				
+
 				IP_general_text = new JEditorPane("text/html", "");
 				IP_general_text.setMargin(new Insets(20,20,20,20));
+				IP_general_text.setFont(fontPlain);
 				try {
 					BufferedReader br = new BufferedReader(new FileReader("text files\\how-to-use.txt"));
-				    StringBuilder sb = new StringBuilder();
-				    String line = br.readLine();
-				    while (line != null) {
-				        sb.append(line);
-				        sb.append(System.lineSeparator());
-				        line = br.readLine();
-				    }
-				    String everything = sb.toString();
-				    IP_general_text.setText(everything);
+					StringBuilder sb = new StringBuilder();
+					String line = br.readLine();
+					while (line != null) {
+						sb.append(line);
+						sb.append(System.lineSeparator());
+						line = br.readLine();
+					}
+					String everything = sb.toString();
+					String fontfamily = IP_general_text.getFont().getFamily();
+					IP_general_text.setText("<html><body style=\"font-family: " + fontfamily + "\"" + everything + "<html>");
 					br.close();
 				} catch (IOException e) {
 					e.printStackTrace();
@@ -329,17 +363,19 @@ public class Main {
 
 				IP_constraints_text = new JEditorPane("text/html", "");
 				IP_constraints_text.setMargin(new Insets(20,20,20,20));
+				IP_constraints_text.setFont(fontText);
 				try {
 					BufferedReader br = new BufferedReader(new FileReader("text files\\constraints.txt"));
-				    StringBuilder sb = new StringBuilder();
-				    String line = br.readLine();
-				    while (line != null) {
-				        sb.append(line);
-				        sb.append(System.lineSeparator());
-				        line = br.readLine();
-				    }
-				    String everything = sb.toString();
-				    IP_constraints_text.setText(everything);
+					StringBuilder sb = new StringBuilder();
+					String line = br.readLine();
+					while (line != null) {
+						sb.append(line);
+						sb.append(System.lineSeparator());
+						line = br.readLine();
+					}
+					String everything = sb.toString();
+					String fontfamily = IP_constraints_text.getFont().getFamily();
+					IP_constraints_text.setText("<html><body style=\"font-family: " + fontfamily + "\"" + everything + "<html>");
 					br.close();
 				} catch (IOException e) {
 					e.printStackTrace();
@@ -352,6 +388,7 @@ public class Main {
 			IP_limitations = new JPanel();{
 				IP_limitations.setBackground(backgroundColor);
 				IP_limitations.setLayout(new MigLayout("", "[grow]", "[grow][]"));
+				IP_limitations.setFont(fontPlain);
 
 				Image backImg = new ImageIcon("images/arrow-point-to-left.png").getImage();
 				backImg = backImg.getScaledInstance(25, 25,  java.awt.Image.SCALE_SMOOTH);
@@ -367,15 +404,16 @@ public class Main {
 				IP_limitations_text.setMargin(new Insets(20,20,20,20));
 				try {
 					BufferedReader br = new BufferedReader(new FileReader("text files\\limitations.txt"));
-				    StringBuilder sb = new StringBuilder();
-				    String line = br.readLine();
-				    while (line != null) {
-				        sb.append(line);
-				        sb.append(System.lineSeparator());
-				        line = br.readLine();
-				    }
-				    String everything = sb.toString();
-				    IP_limitations_text.setText(everything);
+					StringBuilder sb = new StringBuilder();
+					String line = br.readLine();
+					while (line != null) {
+						sb.append(line);
+						sb.append(System.lineSeparator());
+						line = br.readLine();
+					}
+					String everything = sb.toString();
+					String fontfamily = IP_constraints_text.getFont().getFamily();
+					IP_limitations_text.setText("<html><body style=\"font-family: " + fontfamily + "\"" + everything + "<html>");
 					br.close();
 				} catch (IOException e) {
 					e.printStackTrace();
@@ -385,20 +423,23 @@ public class Main {
 				IP_limitations.add(IP_limitations_text_scr, "grow, span");
 				IP_limitations.add(IP_mainMenu3, "tag left");
 			}
-
-
+			Image generalImg = new ImageIcon("images/how.png").getImage();
+			generalImg = generalImg.getScaledInstance(15, 15,  java.awt.Image.SCALE_SMOOTH);
+			ImageIcon generalIcon = new ImageIcon(generalImg);
+			Image constraintsImg = new ImageIcon("images/constraints.png").getImage();
+			constraintsImg = constraintsImg.getScaledInstance(20, 20,  java.awt.Image.SCALE_SMOOTH);
+			ImageIcon constraintsIcon = new ImageIcon(constraintsImg);
+			Image limitationsImg = new ImageIcon("images/limitations.png").getImage();
+			limitationsImg = limitationsImg.getScaledInstance(20, 20,  java.awt.Image.SCALE_SMOOTH);
+			ImageIcon limitationsIcon = new ImageIcon(limitationsImg);
 			instructions_pane.addTab("How To Use Tool", IP_general);
-			instructions_pane.addTab("Constraints", IP_constraints);
+			instructions_pane.addTab("Data Constraints", IP_constraints);
 			instructions_pane.addTab("Limitations", IP_limitations);
+			instructions_pane.setIconAt(0, generalIcon);
+			instructions_pane.setIconAt(1, constraintsIcon);
+			instructions_pane.setIconAt(2, limitationsIcon);
 		}
-		
-		Color trial = Color.decode("#C1B6CA");
-		UIManager.put("TabbedPane.unselectedBackground", trial);
-		
-		UIManager.put("TabbedPane.selected", buttonColor);
-		UIManager.put("TabbedPane.font", fontButton);
-		UIManager.put("TabbedPane.tabInsets", new Insets(10,10,10,10));
-		
+
 		Image inputImg = new ImageIcon("images/input-data.png").getImage();
 		inputImg = inputImg.getScaledInstance(20, 20,  java.awt.Image.SCALE_SMOOTH);
 		ImageIcon inputIcon = new ImageIcon(inputImg);
@@ -408,23 +449,23 @@ public class Main {
 		Image resultsImg = new ImageIcon("images/results.png").getImage();
 		resultsImg = resultsImg.getScaledInstance(20, 20,  java.awt.Image.SCALE_SMOOTH);
 		ImageIcon resultsIcon = new ImageIcon(resultsImg);
-		
+
 		mainDisplay_pane = new JTabbedPane(JTabbedPane.TOP);
 		mainDisplay_pane.setForeground(buttonTextColor);
 		mainDisplay_pane.setFont(fontButton);
-		
+
 		{
 			MD_input_panel = new JPanel();{
 				MD_input_panel.setLayout(new MigLayout("wrap 2", "[][grow]", "[][][grow][][grow][]"));
 				MD_input_panel.setBackground(backgroundColor);
-					
+
 				MD_IP_filename = null;
 				MD_IP_filename_text = new JTextField();
-				
+
 				MD_IP_filename_text.setFont(fontText);
 				MD_IP_filename_text.setEditable(false);
 				MD_IP_filename_text.setBackground(backgroundColor);
-				
+
 				Image openFileImg = new ImageIcon("images/folder.png").getImage();
 				openFileImg = openFileImg.getScaledInstance(20, 20,  java.awt.Image.SCALE_SMOOTH);
 				ImageIcon openFileIcon = new ImageIcon(openFileImg);
@@ -538,7 +579,7 @@ public class Main {
 				VP_FP_formulation = new JPanel();{
 					VP_FP_formulation.setLayout(new MigLayout("", "[grow][grow][grow][grow]", "[][]"));
 					VP_FP_formulation.setBackground(backgroundColor);
-					
+
 					VP_FP_formulation_lbl = new JLabel();
 					VP_FP_formulation_lbl.setFont(fontPlain);
 					VP_FP_formulation_lbl.setText("Choose formulation to use: ");
@@ -632,7 +673,7 @@ public class Main {
 				VP_CP_constraints = new JPanel();{
 					VP_CP_constraints.setLayout(new MigLayout("", "[grow][grow][grow]", "[]"));
 					VP_CP_constraints.setBackground(backgroundColor);
-					
+
 					VP_CP_constraints_lbl = new JLabel();
 					VP_CP_constraints_lbl.setText("Input constraints: ");
 					VP_CP_constraints_lbl.setFont(fontPlain);
@@ -645,7 +686,7 @@ public class Main {
 					//VP_CP_from_spnr = new JSpinner(VP_CP_from_numberModel);
 					VP_CP_from_spnr = new JSpinner();
 					VP_CP_from_spnr.setFont(fontPlain);
-					
+
 					VP_CP_to_spnr = new JSpinner();
 					VP_CP_to_spnr.setFont(fontPlain);
 
@@ -735,11 +776,11 @@ public class Main {
 
 				}
 
-				
+
 				VP_RP_buttons = new JPanel();{
 					VP_RP_buttons.setLayout(new MigLayout("", "[grow][grow]", "[]"));
 					VP_RP_buttons.setBackground(backgroundColor);
-					
+
 					Image backImg = new ImageIcon("images/arrow-point-to-left.png").getImage();
 					backImg = backImg.getScaledInstance(25, 25,  java.awt.Image.SCALE_SMOOTH);
 					ImageIcon backIcon = new ImageIcon(backImg);
@@ -779,18 +820,20 @@ public class Main {
 							mainDisplay_pane.setEnabledAt(1, false);
 							mainDisplay_pane.setEnabledAt(2, true);
 							mainDisplay_pane.setSelectedIndex(2);
+							
+							
 
 							solve = new ILPFormulation(dc.getGenomes(), dc.getGenes(), dc.getMap(), additionalGeneWeight, missingGeneWeight, sizeRangeLower, sizeRangeHigher, getMaxGapSize(), getrWindowSize(), isBasicFormulation(), isCommonIntervals(), isMaxGap(), isrWindows());
 							solve.generateGeneSets();
 							results = new ArrayList<GeneSet>();
-							
+
 							if(r==null){
 								System.out.println("result="+RConnector.checkLocalRserve());
 								try {
 									r = new RConnection();
 									results = solve.solve(r);
 									MD_RP_results_text.setText(solve.getOutput());							
-	
+
 								} catch (Exception x) {
 									System.out.println("R code error: "+x.getMessage());
 								};
@@ -805,22 +848,22 @@ public class Main {
 						}
 					});
 				} 
-			
-			
+
+
 
 				MD_variables_panel.add(VP_FP_formulation, "growx, wrap");
 				formulation_constraints_sep = new JSeparator();
 				MD_variables_panel.add(formulation_constraints_sep, "growx, wrap");
 				MD_variables_panel.add(VP_CP_constraints, "growx, wrap");
 				MD_variables_panel.add(VP_RP_buttons, "grow, wrap, tag bottom");
-				
+
 
 			}
 
 			MD_results_panel = new JPanel();{
 				MD_results_panel.setLayout(new MigLayout("", "[grow]", "[grow][]"));
 				MD_results_panel.setBackground(backgroundColor);
-				
+
 				MD_RP_results_text = new JEditorPane("text/html", "");
 				MD_RP_results_text.setEditable(false);
 				MD_RP_results_scr = new JScrollPane(MD_RP_results_text);
@@ -843,7 +886,7 @@ public class Main {
 						MD_RP_results_text.setText("");
 					}
 				});
-				
+
 				Image exportImg = new ImageIcon("images/export.png").getImage();
 				exportImg = exportImg.getScaledInstance(25, 25,  java.awt.Image.SCALE_SMOOTH);
 				ImageIcon exportIcon = new ImageIcon(exportImg);
@@ -888,9 +931,9 @@ public class Main {
 								exportPdf.write("D+ = " + sizeRangeHigher);
 								exportPdf.write("w- = " + missingGeneWeight);
 								exportPdf.write("w+ = " + additionalGeneWeight);
-								
+
 								for(int i=0; i<results.size(); i++){
-									
+
 									exportPdf.write(results.get(i).toOrigString());
 								}*/
 								exportPdf.save();
@@ -942,7 +985,7 @@ public class Main {
 			mainDisplay_pane.setFont(fontButton);
 			mainDisplay_pane.setEnabledAt(1, false);
 			mainDisplay_pane.setEnabledAt(2, false);
-			
+
 		}
 	}
 
