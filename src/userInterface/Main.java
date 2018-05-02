@@ -3,16 +3,20 @@ package userInterface;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Font;
+import java.awt.Image;
+import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.WindowEvent;
+import java.awt.event.WindowListener;
 import java.awt.image.BufferedImage;
+import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileWriter;
+import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
 
 import javax.imageio.ImageIO;
-import javax.swing.AbstractButton;
 import javax.swing.ButtonGroup;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
@@ -25,18 +29,16 @@ import javax.swing.JRadioButton;
 import javax.swing.JScrollPane;
 import javax.swing.JSeparator;
 import javax.swing.JSpinner;
-import javax.swing.JSpinner.DefaultEditor;
 import javax.swing.JTabbedPane;
-import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.SpinnerNumberModel;
+import javax.swing.SwingConstants;
 import javax.swing.UIManager;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import javax.swing.filechooser.FileNameExtensionFilter;
 
 import org.rosuda.REngine.Rserve.RConnection;
-
 import javaBackend.DataConverter;
 import javaBackend.ExportCSV;
 import javaBackend.ExportPDF;
@@ -51,6 +53,7 @@ public class Main {
 	private DataConverter dc;
 	private ILPFormulation solve;
 	private ArrayList<GeneSet> results;
+	private RConnection r = null;
 
 	private int numOfGenomes = 0;
 	private JFrame frame;
@@ -66,9 +69,9 @@ public class Main {
 	private JPanel IP_general;
 	private JPanel IP_constraints;
 	private JPanel IP_limitations;
-	private JTextArea IP_general_text;
-	private JTextArea IP_constraints_text;
-	private JTextArea IP_limitations_text;
+	private JEditorPane IP_general_text;
+	private JEditorPane IP_constraints_text;
+	private JEditorPane IP_limitations_text;
 	private JButton IP_mainMenu1;
 	private JButton IP_mainMenu2;
 	private JButton IP_mainMenu3;
@@ -88,7 +91,6 @@ public class Main {
 	private JTextField MD_IP_filename_text;
 	private File MD_IP_filename;
 	private JSeparator formulation_constraints_sep;
-	private JSeparator constraints_sampleres_sep;
 	private JPanel VP_FP_formulation;
 	private JLabel VP_FP_formulation_lbl;
 	private ButtonGroup VP_FP_group;
@@ -110,13 +112,9 @@ public class Main {
 	private JLabel VP_CP_rWindowSize_Lbl;
 	private JSpinner VP_CP_rWindowSize_spnr;
 	private JPanel VP_CP_constraints;
-	private JPanel VP_RP_sampleResults;
-	private JTextArea VP_RP_sampleResults_text;
-	private JLabel VP_RP_sampleResults_lbl;
-	private JScrollPane VP_RP_sampleResults_scr;
 	private JButton VP_RP_back_btn;
-	private AbstractButton VP_RP_next_btn;
-	private JTextArea MD_RP_results_text;
+	private JButton VP_RP_next_btn;
+	private JEditorPane MD_RP_results_text;
 	private JScrollPane MD_RP_results_scr;
 	private JButton MD_RP_exportCSV_btn;
 	private JButton MD_RP_exportPDF_btn;
@@ -124,25 +122,14 @@ public class Main {
 	
 	private Font fontPlain;
 	private Font fontButton;
-	//private Color cream;
-	//private Color petal;
-	//private Color burgundy;
-	//private Color fresh;
-	//private Color charcoal;
-	private Color green1;
-	private Color green2;
-	private Color white;
-	private Color orangelight;
-	private Color orangenormal;
-	private Color orangedark;
-	private Color bluelight;
-	private Color bluenormal;
-	private Color bluedark;
 	private Color buttonColor;
 	private Color backgroundColor;
+	private Color buttonTextColor;
 	private Font fontText;
-	private Color greenlight;
-	private Object greennormal; 
+	private JScrollPane IP_general_text_scr;
+	private JScrollPane IP_constraints_text_scr;
+	private JScrollPane IP_limitations_text_scr;
+	private JPanel VP_RP_buttons; 
 
 	public Main(){
 		this.setAdditionalGeneWeight(0);
@@ -157,25 +144,14 @@ public class Main {
 		this.setrWindows(false);
 		fontButton = new Font("Lucida Sans Unicode", Font.BOLD, 14);
 		fontText = new Font("Lucida Sans Unicode", Font.PLAIN, 14);
-		fontPlain =  new Font("Lucida Sans Unicode", Font.PLAIN, 13);
-		//cream = Color.decode("#E9DCCD");
-		//petal = Color.decode("#E3BAB3");
-		///burgundy = Color.decode("#613A43");
-		//fresh = Color.decode("#849974");
-		//charcoal = Color.decode("#36384C");
-		orangelight = Color.decode("#ffedd9");
-		orangenormal = Color.decode("#ffc492");
-		orangedark = Color.decode("#ff7f00");
-		bluelight = Color.decode("#dcfffe");
-		//backgroundColor = Color.decode("#dcfffe");
-		backgroundColor = Color.white;
-		bluenormal = Color.decode("#279ecc");
-		//buttonColor = Color.decode("#279ecc");
-		buttonColor = Color.gray;
-		bluedark = Color.decode("#0080ff");
-		white = Color.decode("#ebedec");
-		greenlight = Color.decode("#ddffee");
-		greennormal = Color.decode("#b8ffb7");
+		fontPlain =  new Font("Lucida Sans Unicode", Font.PLAIN, 14);
+		backgroundColor = Color.decode("#BB649B");
+		
+		backgroundColor = Color.decode("#FEFCFC");
+		buttonColor = Color.decode("#94206B");
+		buttonTextColor = Color.decode("#DAC3D2");
+		
+		//buttonColor = Color.gray;
 		initialize();
 	}
 
@@ -183,6 +159,32 @@ public class Main {
 	private void initialize(){
 
 		frame = new JFrame();
+		frame.addWindowListener(new WindowListener(){
+
+			public void windowActivated(WindowEvent arg0) {}
+			
+			public void windowClosed(WindowEvent arg0) {}
+
+			public void windowClosing(WindowEvent arg0) {
+				if(r!=null){
+					try {
+						r.shutdown();
+						System.out.println("R connector shutdown successful.");
+					} catch (Exception x) {
+						System.out.println("R code error: "+x.getMessage());
+					};
+				}
+			}
+
+			public void windowDeactivated(WindowEvent arg0) {}
+
+			public void windowDeiconified(WindowEvent arg0) {}
+
+			public void windowIconified(WindowEvent arg0) {}
+
+			public void windowOpened(WindowEvent arg0) {}
+			
+		});
 		frame.setTitle("Approximate Gene Cluster Tool");
 		frame.setMinimumSize(new Dimension(800,600));
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -191,7 +193,8 @@ public class Main {
 		homeScreen.setBackground(backgroundColor);
 		homeScreen.setLayout(new MigLayout("", "[grow]", "[grow][]"));
 		frame.add(homeScreen);
-		frame.setBackground(greenlight);
+
+		frame.setBackground(backgroundColor);
 
 		{
 
@@ -213,10 +216,16 @@ public class Main {
 				HS_buttons_panel.setLayout(new MigLayout("", "[grow][grow]", "[]"));
 				HS_buttons_panel.setBackground(backgroundColor);
 
-				HS_start_button = new JButton();
+				Image img = new ImageIcon("images/arrow-point-to-right.png").getImage();
+				img = img.getScaledInstance(40, 40,  java.awt.Image.SCALE_SMOOTH);
+				ImageIcon startIcon = new ImageIcon(img);
+				HS_start_button = new JButton(startIcon);
 				HS_start_button.setText("Start");
+				//HS_start_button.setIcon((Icon) new ImageIcon("images/icon1.png").getImage());
+				
+				
 				HS_start_button.setFont(fontButton);
-				HS_start_button.setForeground(white);
+				HS_start_button.setForeground(buttonTextColor);
 				HS_start_button.setBackground(buttonColor);
 				
 				HS_start_button.addActionListener(new ActionListener(){
@@ -230,11 +239,13 @@ public class Main {
 
 				});
 
-
-				HS_instructions_button = new JButton();
+				Image instruImg = new ImageIcon("images/instructions.png").getImage();
+				instruImg = instruImg.getScaledInstance(40, 40,  java.awt.Image.SCALE_SMOOTH);
+				ImageIcon instruIcon = new ImageIcon(instruImg);
+				HS_instructions_button = new JButton(instruIcon);
 				HS_instructions_button.setText("Getting Started");
 				HS_instructions_button.setFont(fontButton);
-				HS_instructions_button.setForeground(white);
+				HS_instructions_button.setForeground(buttonTextColor);
 				HS_instructions_button.setBackground(buttonColor);
 				
 				HS_instructions_button.addActionListener(new ActionListener(){
@@ -269,15 +280,36 @@ public class Main {
 				IP_general.setLayout(new MigLayout("", "[grow]", "[grow][]"));
 				IP_general.setBackground(backgroundColor);
 				
-				IP_mainMenu1 = new JButton();
+				Image backImg = new ImageIcon("images/arrow-point-to-left.png").getImage();
+				backImg = backImg.getScaledInstance(25, 25,  java.awt.Image.SCALE_SMOOTH);
+				ImageIcon backIcon = new ImageIcon(backImg);
+				IP_mainMenu1 = new JButton(backIcon);
 				IP_mainMenu1.setText("Main Menu");
 				IP_mainMenu1.setFont(fontButton);
 				IP_mainMenu1.setBackground(buttonColor);
-				IP_mainMenu1.setForeground(white);
+				IP_mainMenu1.setForeground(buttonTextColor);
 				IP_mainMenu1.addActionListener(IP_mainMenu_listener);
-
-				IP_general_text = new JTextArea();
-				IP_general.add(IP_general_text, "grow, span");
+				
+				IP_general_text = new JEditorPane("text/html", "");
+				IP_general_text.setMargin(new Insets(20,20,20,20));
+				try {
+					BufferedReader br = new BufferedReader(new FileReader("text files\\how-to-use.txt"));
+				    StringBuilder sb = new StringBuilder();
+				    String line = br.readLine();
+				    while (line != null) {
+				        sb.append(line);
+				        sb.append(System.lineSeparator());
+				        line = br.readLine();
+				    }
+				    String everything = sb.toString();
+				    IP_general_text.setText(everything);
+					br.close();
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+				IP_general_text.setEditable(false);
+				IP_general_text_scr = new JScrollPane(IP_general_text);
+				IP_general.add(IP_general_text_scr, "grow, span");
 				IP_general.add(IP_mainMenu1, "tag left");
 
 			}
@@ -285,30 +317,72 @@ public class Main {
 				IP_constraints.setBackground(backgroundColor);
 				IP_constraints.setLayout(new MigLayout("", "[grow]", "[grow][]"));
 
-				IP_mainMenu2 = new JButton();
+				Image backImg = new ImageIcon("images/arrow-point-to-left.png").getImage();
+				backImg = backImg.getScaledInstance(25, 25,  java.awt.Image.SCALE_SMOOTH);
+				ImageIcon backIcon = new ImageIcon(backImg);
+				IP_mainMenu2 = new JButton(backIcon);
 				IP_mainMenu2.setText("Main Menu");
 				IP_mainMenu2.setFont(fontButton);
 				IP_mainMenu2.setBackground(buttonColor);
-				IP_mainMenu2.setForeground(white);
+				IP_mainMenu2.setForeground(buttonTextColor);
 				IP_mainMenu2.addActionListener(IP_mainMenu_listener);
 
-				IP_constraints_text = new JTextArea();
-				IP_constraints.add(IP_constraints_text, "grow, span");
+				IP_constraints_text = new JEditorPane("text/html", "");
+				IP_constraints_text.setMargin(new Insets(20,20,20,20));
+				try {
+					BufferedReader br = new BufferedReader(new FileReader("text files\\constraints.txt"));
+				    StringBuilder sb = new StringBuilder();
+				    String line = br.readLine();
+				    while (line != null) {
+				        sb.append(line);
+				        sb.append(System.lineSeparator());
+				        line = br.readLine();
+				    }
+				    String everything = sb.toString();
+				    IP_constraints_text.setText(everything);
+					br.close();
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+				IP_constraints_text.setEditable(false);
+				IP_constraints_text_scr = new JScrollPane(IP_constraints_text);
+				IP_constraints.add(IP_constraints_text_scr, "grow, span");
 				IP_constraints.add(IP_mainMenu2, "tag left");
 			}
 			IP_limitations = new JPanel();{
 				IP_limitations.setBackground(backgroundColor);
 				IP_limitations.setLayout(new MigLayout("", "[grow]", "[grow][]"));
 
-				IP_mainMenu3 = new JButton();
+				Image backImg = new ImageIcon("images/arrow-point-to-left.png").getImage();
+				backImg = backImg.getScaledInstance(25, 25,  java.awt.Image.SCALE_SMOOTH);
+				ImageIcon backIcon = new ImageIcon(backImg);
+				IP_mainMenu3 = new JButton(backIcon);
 				IP_mainMenu3.setText("Main Menu");
 				IP_mainMenu3.setFont(fontButton);
 				IP_mainMenu3.setBackground(buttonColor);
-				IP_mainMenu3.setForeground(white);
+				IP_mainMenu3.setForeground(buttonTextColor);
 				IP_mainMenu3.addActionListener(IP_mainMenu_listener);
 
-				IP_limitations_text = new JTextArea();
-				IP_limitations.add(IP_limitations_text, "grow, span");
+				IP_limitations_text = new JEditorPane("text/html", "");
+				IP_limitations_text.setMargin(new Insets(20,20,20,20));
+				try {
+					BufferedReader br = new BufferedReader(new FileReader("text files\\limitations.txt"));
+				    StringBuilder sb = new StringBuilder();
+				    String line = br.readLine();
+				    while (line != null) {
+				        sb.append(line);
+				        sb.append(System.lineSeparator());
+				        line = br.readLine();
+				    }
+				    String everything = sb.toString();
+				    IP_limitations_text.setText(everything);
+					br.close();
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+				IP_limitations_text.setEditable(false);
+				IP_limitations_text_scr = new JScrollPane(IP_limitations_text);
+				IP_limitations.add(IP_limitations_text_scr, "grow, span");
 				IP_limitations.add(IP_mainMenu3, "tag left");
 			}
 
@@ -318,10 +392,26 @@ public class Main {
 			instructions_pane.addTab("Limitations", IP_limitations);
 		}
 		
-		UIManager.put("TabbedPane.unselectedBackground", greenlight);
-		UIManager.put("TabbedPane.selected", orangenormal);
+		Color trial = Color.decode("#C1B6CA");
+		UIManager.put("TabbedPane.unselectedBackground", trial);
+		
+		UIManager.put("TabbedPane.selected", buttonColor);
+		UIManager.put("TabbedPane.font", fontButton);
+		UIManager.put("TabbedPane.tabInsets", new Insets(10,10,10,10));
+		
+		Image inputImg = new ImageIcon("images/input-data.png").getImage();
+		inputImg = inputImg.getScaledInstance(20, 20,  java.awt.Image.SCALE_SMOOTH);
+		ImageIcon inputIcon = new ImageIcon(inputImg);
+		Image constraintsImg = new ImageIcon("images/constraints.png").getImage();
+		constraintsImg = constraintsImg.getScaledInstance(20, 20,  java.awt.Image.SCALE_SMOOTH);
+		ImageIcon constraintsIcon = new ImageIcon(constraintsImg);
+		Image resultsImg = new ImageIcon("images/results.png").getImage();
+		resultsImg = resultsImg.getScaledInstance(20, 20,  java.awt.Image.SCALE_SMOOTH);
+		ImageIcon resultsIcon = new ImageIcon(resultsImg);
 		
 		mainDisplay_pane = new JTabbedPane(JTabbedPane.TOP);
+		mainDisplay_pane.setForeground(buttonTextColor);
+		mainDisplay_pane.setFont(fontButton);
 		
 		{
 			MD_input_panel = new JPanel();{
@@ -333,13 +423,16 @@ public class Main {
 				
 				MD_IP_filename_text.setFont(fontText);
 				MD_IP_filename_text.setEditable(false);
-				MD_IP_filename_text.setBackground(orangelight);
+				MD_IP_filename_text.setBackground(backgroundColor);
 				
-				MD_IP_openFile_button = new JButton();
+				Image openFileImg = new ImageIcon("images/folder.png").getImage();
+				openFileImg = openFileImg.getScaledInstance(20, 20,  java.awt.Image.SCALE_SMOOTH);
+				ImageIcon openFileIcon = new ImageIcon(openFileImg);
+				MD_IP_openFile_button = new JButton(openFileIcon);
 				MD_IP_openFile_button.setText("Open CSV File");
 				MD_IP_openFile_button.setFont(fontButton);
 				MD_IP_openFile_button.setBackground(buttonColor);
-				MD_IP_openFile_button.setForeground(white);
+				MD_IP_openFile_button.setForeground(buttonTextColor);
 				MD_IP_openFile_button.addActionListener(new ActionListener() {
 					@Override
 					public void actionPerformed(ActionEvent e) {
@@ -385,12 +478,16 @@ public class Main {
 				MD_IP_previewConverted_lbl.setText("Converted data: ");
 				MD_IP_previewConverted_lbl.setFont(fontButton);
 
-				MD_IP_next_btn = new JButton();
+				Image img = new ImageIcon("images/arrow-point-to-right.png").getImage();
+				img = img.getScaledInstance(25, 25,  java.awt.Image.SCALE_SMOOTH);
+				ImageIcon nextIcon = new ImageIcon(img);
+				MD_IP_next_btn = new JButton(nextIcon);
 				MD_IP_next_btn.setEnabled(false);
 				MD_IP_next_btn.setText("Next");
+				MD_IP_next_btn.setHorizontalTextPosition(SwingConstants.LEFT);
 				MD_IP_next_btn.setFont(fontButton);
 				MD_IP_next_btn.setBackground(buttonColor);
-				MD_IP_next_btn.setForeground(white);
+				MD_IP_next_btn.setForeground(buttonTextColor);
 				MD_IP_next_btn.addActionListener(new ActionListener(){
 					public void actionPerformed(ActionEvent e) {
 						mainDisplay_pane.setEnabledAt(0, false);
@@ -405,11 +502,14 @@ public class Main {
 					}
 				});
 
-				MD_IP_mainMenu_btn = new JButton();
+				Image backImg = new ImageIcon("images/arrow-point-to-left.png").getImage();
+				backImg = backImg.getScaledInstance(25, 25,  java.awt.Image.SCALE_SMOOTH);
+				ImageIcon backIcon = new ImageIcon(backImg);
+				MD_IP_mainMenu_btn = new JButton(backIcon);
 				MD_IP_mainMenu_btn.setText("Main Menu");
 				MD_IP_mainMenu_btn.setFont(fontButton);
 				MD_IP_mainMenu_btn.setBackground(buttonColor);
-				MD_IP_mainMenu_btn.setForeground(white);
+				MD_IP_mainMenu_btn.setForeground(buttonTextColor);
 				MD_IP_mainMenu_btn.addActionListener(new ActionListener(){
 					public void actionPerformed(ActionEvent arg0) {
 						frame.remove(mainDisplay_pane);
@@ -432,10 +532,8 @@ public class Main {
 
 
 			MD_variables_panel = new JPanel();{
-				MD_variables_panel.setLayout(new MigLayout("", "[grow]", "[][][grow]"));
+				MD_variables_panel.setLayout(new MigLayout("", "[grow]", "[grow][grow][grow][]"));
 				MD_variables_panel.setBackground(backgroundColor);
-				formulation_constraints_sep = new JSeparator();
-				constraints_sampleres_sep = new JSeparator();
 
 				VP_FP_formulation = new JPanel();{
 					VP_FP_formulation.setLayout(new MigLayout("", "[grow][grow][grow][grow]", "[][]"));
@@ -447,14 +545,18 @@ public class Main {
 
 					VP_FP_group = new ButtonGroup();
 
-					VP_FP_basic_rbtn = new JRadioButton("Basic Formulation");
+					VP_FP_basic_rbtn = new JRadioButton("General");
 					VP_FP_basic_rbtn.setFont(fontPlain);
+					VP_FP_basic_rbtn.setBackground(backgroundColor);
 					VP_FP_commonIntervals_rbtn = new JRadioButton("Common Intervals");
 					VP_FP_commonIntervals_rbtn.setFont(fontPlain);
+					VP_FP_commonIntervals_rbtn.setBackground(backgroundColor);
 					VP_FP_maxGap_rbtn = new JRadioButton("Max Gap");
 					VP_FP_maxGap_rbtn.setFont(fontPlain);
+					VP_FP_maxGap_rbtn.setBackground(backgroundColor);
 					VP_FP_rWindows_rbtn = new JRadioButton("r-Windows");
 					VP_FP_rWindows_rbtn.setFont(fontPlain);
+					VP_FP_rWindows_rbtn.setBackground(backgroundColor);
 
 					VP_FP_group.add(VP_FP_basic_rbtn);
 					VP_FP_group.add(VP_FP_commonIntervals_rbtn);
@@ -466,7 +568,6 @@ public class Main {
 					VP_FP_formulation.add(VP_FP_commonIntervals_rbtn, "grow");
 					VP_FP_formulation.add(VP_FP_maxGap_rbtn, "grow");
 					VP_FP_formulation.add(VP_FP_rWindows_rbtn, "grow, span");
-					VP_FP_formulation.add(formulation_constraints_sep, "growx, span");
 
 					ActionListener formulationListener = new ActionListener(){
 						@Override
@@ -541,7 +642,8 @@ public class Main {
 					VP_CP_sizeRange_lbl.setFont(fontPlain);
 
 					VP_CP_from_numberModel = new SpinnerNumberModel(0, 0, 9, 1);
-					VP_CP_from_spnr = new JSpinner(VP_CP_from_numberModel);
+					//VP_CP_from_spnr = new JSpinner(VP_CP_from_numberModel);
+					VP_CP_from_spnr = new JSpinner();
 					VP_CP_from_spnr.setFont(fontPlain);
 					
 					VP_CP_to_spnr = new JSpinner();
@@ -594,7 +696,6 @@ public class Main {
 					VP_CP_constraints.add(VP_CP_gapSize_spnr, "grow, span");	
 					VP_CP_constraints.add(VP_CP_rWindowSize_Lbl, "tag right");
 					VP_CP_constraints.add(VP_CP_rWindowSize_spnr, "grow, span");
-					VP_CP_constraints.add(constraints_sampleres_sep, "growx, span");
 
 					VP_CP_from_spnr.addChangeListener(new ChangeListener(){
 						public void stateChanged(ChangeEvent arg0) {
@@ -634,22 +735,18 @@ public class Main {
 
 				}
 
-				VP_RP_sampleResults = new JPanel();{
-					VP_RP_sampleResults.setLayout(new MigLayout("", "[grow][grow]", "[][grow][]"));
-					VP_RP_sampleResults.setBackground(backgroundColor);
+				
+				VP_RP_buttons = new JPanel();{
+					VP_RP_buttons.setLayout(new MigLayout("", "[grow][grow]", "[]"));
+					VP_RP_buttons.setBackground(backgroundColor);
 					
-					VP_RP_sampleResults_lbl = new JLabel();
-					VP_RP_sampleResults_lbl.setText("Possible results: ");
-					VP_RP_sampleResults_lbl.setFont(fontPlain);
-					
-					VP_RP_sampleResults_text = new JTextArea();
-					VP_RP_sampleResults_text.setFont(fontPlain);
-					VP_RP_sampleResults_scr = new JScrollPane(VP_RP_sampleResults_text);
-
-					VP_RP_back_btn = new JButton();
+					Image backImg = new ImageIcon("images/arrow-point-to-left.png").getImage();
+					backImg = backImg.getScaledInstance(25, 25,  java.awt.Image.SCALE_SMOOTH);
+					ImageIcon backIcon = new ImageIcon(backImg);
+					VP_RP_back_btn = new JButton(backIcon);
 					VP_RP_back_btn.setText("Back");
 					VP_RP_back_btn.setBackground(buttonColor);
-					VP_RP_back_btn.setForeground(white);
+					VP_RP_back_btn.setForeground(buttonTextColor);
 					VP_RP_back_btn.setFont(fontButton);
 					VP_RP_back_btn.addActionListener(new ActionListener(){
 						@Override
@@ -661,18 +758,17 @@ public class Main {
 						}
 					});
 
-					VP_RP_next_btn = new JButton();
+					Image nextImg = new ImageIcon("images/arrow-point-to-right.png").getImage();
+					nextImg = nextImg.getScaledInstance(25, 25,  java.awt.Image.SCALE_SMOOTH);
+					ImageIcon nextIcon = new ImageIcon(nextImg);
+					VP_RP_next_btn = new JButton(nextIcon);
 					VP_RP_next_btn.setText("Next");
 					VP_RP_next_btn.setBackground(buttonColor);
-					VP_RP_next_btn.setForeground(white);
+					VP_RP_next_btn.setForeground(buttonTextColor);
 					VP_RP_next_btn.setFont(fontButton);
 
-					//VP_RP_buttons_panel.add(VP_RP_back_btn, "tag left");
-					//VP_RP_buttons_panel.add(VP_RP_next_btn, "tag right, wrap");
-					VP_RP_sampleResults.add(VP_RP_sampleResults_lbl, "grow, span");
-					VP_RP_sampleResults.add(VP_RP_sampleResults_scr, "grow, span");
-					VP_RP_sampleResults.add(VP_RP_back_btn, "tag left");
-					VP_RP_sampleResults.add(VP_RP_next_btn, "tag right, wrap");
+					VP_RP_buttons.add(VP_RP_back_btn, "tag left");
+					VP_RP_buttons.add(VP_RP_next_btn, "tag right, wrap");
 
 
 					VP_RP_next_btn.addActionListener(new ActionListener(){
@@ -687,26 +783,37 @@ public class Main {
 							solve = new ILPFormulation(dc.getGenomes(), dc.getGenes(), dc.getMap(), additionalGeneWeight, missingGeneWeight, sizeRangeLower, sizeRangeHigher, getMaxGapSize(), getrWindowSize(), isBasicFormulation(), isCommonIntervals(), isMaxGap(), isrWindows());
 							solve.generateGeneSets();
 							results = new ArrayList<GeneSet>();
-
-							System.out.println("result="+RConnector.checkLocalRserve());
-							try {
-								RConnection c=new RConnection();
-
-								results = solve.solve(c);
-								MD_RP_results_text.setText(solve.getOutput());
-								c.shutdown();
-
-
-							} catch (Exception x) {
-								System.out.println("R code error: "+x.getMessage());
-							};
+							
+							if(r==null){
+								System.out.println("result="+RConnector.checkLocalRserve());
+								try {
+									r = new RConnection();
+									results = solve.solve(r);
+									MD_RP_results_text.setText(solve.getOutput());							
+	
+								} catch (Exception x) {
+									System.out.println("R code error: "+x.getMessage());
+								};
+							} else{
+								try {
+									results = solve.solve(r);
+									MD_RP_results_text.setText(solve.getOutput());
+								} catch (Exception x) {
+									System.out.println("R code error: "+x.getMessage());
+								};
+							}
 						}
 					});
-				}
+				} 
+			
+			
 
 				MD_variables_panel.add(VP_FP_formulation, "growx, wrap");
+				formulation_constraints_sep = new JSeparator();
+				MD_variables_panel.add(formulation_constraints_sep, "growx, wrap");
 				MD_variables_panel.add(VP_CP_constraints, "growx, wrap");
-				MD_variables_panel.add(VP_RP_sampleResults, "grow, wrap");
+				MD_variables_panel.add(VP_RP_buttons, "grow, wrap, tag bottom");
+				
 
 			}
 
@@ -714,15 +821,18 @@ public class Main {
 				MD_results_panel.setLayout(new MigLayout("", "[grow]", "[grow][]"));
 				MD_results_panel.setBackground(backgroundColor);
 				
-				MD_RP_results_text = new JTextArea();
+				MD_RP_results_text = new JEditorPane("text/html", "");
 				MD_RP_results_text.setEditable(false);
 				MD_RP_results_scr = new JScrollPane(MD_RP_results_text);
 
-				MD_RP_back_btn = new JButton();
+				Image img = new ImageIcon("images/arrow-point-to-left.png").getImage();
+				img = img.getScaledInstance(25, 25,  java.awt.Image.SCALE_SMOOTH);
+				ImageIcon backIcon = new ImageIcon(img);
+				MD_RP_back_btn = new JButton(backIcon);
 				MD_RP_back_btn.setText("Back");
 				MD_RP_back_btn.setFont(fontButton);
 				MD_RP_back_btn.setBackground(buttonColor);
-				MD_RP_back_btn.setForeground(white);
+				MD_RP_back_btn.setForeground(buttonTextColor);
 				MD_RP_back_btn.addActionListener(new ActionListener(){
 					@Override
 					public void actionPerformed(ActionEvent e) {
@@ -733,17 +843,21 @@ public class Main {
 						MD_RP_results_text.setText("");
 					}
 				});
+				
+				Image exportImg = new ImageIcon("images/export.png").getImage();
+				exportImg = exportImg.getScaledInstance(25, 25,  java.awt.Image.SCALE_SMOOTH);
+				ImageIcon exportIcon = new ImageIcon(exportImg);
 
-				MD_RP_exportPDF_btn = new JButton();
+				MD_RP_exportPDF_btn = new JButton(exportIcon);
 				MD_RP_exportPDF_btn.setText("Export PDF");
 				MD_RP_exportPDF_btn.setBackground(buttonColor);
 				MD_RP_exportPDF_btn.setFont(fontButton);
-				MD_RP_exportPDF_btn.setForeground(white);
+				MD_RP_exportPDF_btn.setForeground(buttonTextColor);
 
-				MD_RP_exportCSV_btn = new JButton();
+				MD_RP_exportCSV_btn = new JButton(exportIcon);
 				MD_RP_exportCSV_btn.setText("Export CSV");
 				MD_RP_exportCSV_btn.setBackground(buttonColor);
-				MD_RP_exportCSV_btn.setForeground(white);
+				MD_RP_exportCSV_btn.setForeground(buttonTextColor);
 				MD_RP_exportCSV_btn.setFont(fontButton);
 
 				MD_results_panel.add(MD_RP_results_scr, "grow, span");
@@ -751,13 +865,10 @@ public class Main {
 				MD_results_panel.add(MD_RP_exportPDF_btn, "growx");
 				MD_results_panel.add(MD_RP_exportCSV_btn, "growx, span");
 
-
-
-
 				MD_RP_exportPDF_btn.addActionListener(new ActionListener(){
 					public void actionPerformed(ActionEvent e){
 						JFileChooser chooser = new JFileChooser(); 
-						chooser.setCurrentDirectory(new java.io.File("."));
+						chooser.setCurrentDirectory(new File(System.getProperty("user.dir")));
 						chooser.setDialogTitle("Save as");
 						chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
 						chooser.setAcceptAllFileFilterUsed(false);
@@ -770,11 +881,21 @@ public class Main {
 							System.out.println(fileChooser.getSelectedFile());
 							try {
 								ExportPDF exportPdf = new ExportPDF(file);
-								exportPdf.write("sdfhsdkfh");
+								exportPdf.write("henlo");
+								//exportPdf.write(results.);
+								/*
+								exportPdf.write("D- = " + sizeRangeLower);
+								exportPdf.write("D+ = " + sizeRangeHigher);
+								exportPdf.write("w- = " + missingGeneWeight);
+								exportPdf.write("w+ = " + additionalGeneWeight);
+								
+								for(int i=0; i<results.size(); i++){
+									
+									exportPdf.write(results.get(i).toOrigString());
+								}*/
 								exportPdf.save();
 								exportPdf.close();
 							} catch (IOException e1) {
-								// TODO Auto-generated catch block
 								e1.printStackTrace();
 							}
 							// save to file
@@ -785,7 +906,7 @@ public class Main {
 				MD_RP_exportCSV_btn.addActionListener(new ActionListener(){
 					public void actionPerformed(ActionEvent e){
 						JFileChooser chooser = new JFileChooser(); 
-						chooser.setCurrentDirectory(new java.io.File("."));
+						chooser.setCurrentDirectory(new File(System.getProperty("user.dir")));
 						chooser.setDialogTitle("Save as");
 						chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
 						chooser.setAcceptAllFileFilterUsed(false);
@@ -796,13 +917,15 @@ public class Main {
 							File file = new File(fileChooser.getSelectedFile().getAbsolutePath());
 							System.out.println(fileChooser.getSelectedFile());
 							try {
-								FileWriter writer = new FileWriter(file);
-								ExportCSV exportCsv = new ExportCSV(writer);
-
-								writer.flush();
-								writer.close();
+								ExportCSV exportCsv = new ExportCSV(file);
+								for(int i=0; i<results.size(); i++){
+									ArrayList<String> write = new ArrayList<String>();
+									write.add("Reference Gene Set #" + (i+1));
+									write.addAll(results.get(i).getGeneContentStr());
+									exportCsv.write(write);
+								}
+								exportCsv.close();
 							} catch (IOException e1) {
-								// TODO Auto-generated catch block
 								e1.printStackTrace();
 							}
 							// save to file
@@ -813,17 +936,14 @@ public class Main {
 			mainDisplay_pane.addTab("Input Data", MD_input_panel);
 			mainDisplay_pane.addTab("Constraints", MD_variables_panel);
 			mainDisplay_pane.addTab("Results",MD_results_panel);
-			
+			mainDisplay_pane.setIconAt(0, inputIcon);
+			mainDisplay_pane.setIconAt(1, constraintsIcon);
+			mainDisplay_pane.setIconAt(2, resultsIcon);
 			mainDisplay_pane.setFont(fontButton);
 			mainDisplay_pane.setEnabledAt(1, false);
 			mainDisplay_pane.setEnabledAt(2, false);
+			
 		}
-
-
-		{
-
-		}
-
 	}
 
 	public int getAdditionalGeneWeight() {
@@ -929,6 +1049,7 @@ public class Main {
 	public void setNumOfGenomes(int numOfGenomes) {
 		this.numOfGenomes = numOfGenomes;
 	}
+
 
 }
 

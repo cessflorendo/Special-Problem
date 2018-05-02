@@ -4,7 +4,6 @@ import java.util.ArrayList;
 public class GeneSet {
 	private ArrayList<Gene> geneSet;
 	private ArrayList<String> geneContentStr;
-	//private ArrayList<Integer> geneContent;
 	private String strRep;
 	private int strSum;
 	private int positionStart;
@@ -46,22 +45,6 @@ public class GeneSet {
 	public int getPositionStart(){
 		return this.positionStart;
 	}
-
-	/*
-	public void setGeneContent(ArrayList<Gene> genes) {
-		this.geneContent = new ArrayList<Integer>();
-		this.geneContentStr = new ArrayList<String>();
-		for(int i=0; i<genes.size(); i++){
-			if(!geneContent.contains(genes.get(i).getGeneNumberRep())){
-				geneContent.add(genes.get(i).getGeneNumberRep());
-			}
-			
-			if(!geneContentStr.contains(genes.get(i).getGeneName())){
-				geneContentStr.add(genes.get(i).getGeneName());
-			}
-		}
-	}
-	*/
 	
 	public void setGeneContentStr(ArrayList<Gene> genes){
 		this.geneContentStr = new ArrayList<String>();
@@ -75,20 +58,6 @@ public class GeneSet {
 	public ArrayList<String> getGeneContentStr(){
 		return this.geneContentStr;
 	}
-	/*
-	public ArrayList<Integer> getGeneContent(){
-		return this.geneContent;
-	}
-	
-	public void printGeneContent(){
-		for(int i=0; i<geneContent.size(); i++){
-			System.out.print(geneContent.get(i) + ",");
-		}
-		System.out.println();
-	}
-
-	*/
-	
 	
 	public boolean equals(Object geneSet){
 		if(this.geneContentStr.equals(((GeneSet) geneSet).getGeneContentStr())) return true;		
@@ -99,13 +68,10 @@ public class GeneSet {
 		this.strRep = "";
 		int strSum = 0;
 		for(int i=0; i<allGenes.size(); i++){
-			System.out.print(allGenes.get(i).getGeneName()+ ": ");
 			if(geneContentStr.contains(allGenes.get(i).getGeneName())){
 				this.strRep += "1,";
 				strSum += 1;
-				System.out.println("1");
 			} else{
-				System.out.println("0");
 				this.strRep += "0,";
 			}
 		}

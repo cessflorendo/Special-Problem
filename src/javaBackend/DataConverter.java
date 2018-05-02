@@ -11,6 +11,7 @@ public class DataConverter {
 	private MapStringArrayList map;
 
 	public DataConverter(String filePath) throws IOException{
+		System.out.println("Converting data...");
 		allGenomes = new ArrayList<Genome>();
 		convertedAllGenomes = new ArrayList<Genome>();
 		allGenes = new ArrayList<Gene>();
@@ -27,7 +28,18 @@ public class DataConverter {
 			ArrayList<Gene> genes = new ArrayList<Gene>();
 
 			for(int j=1; j<temp.length; j++){
-				if(!map.containsKey(temp[j])){
+				if(temp[j].equals("0")){
+					ArrayList<Integer> newArr = new ArrayList<Integer>();
+					newArr.add(id);
+					newArr.add(1);
+					map.add(Integer.toString(id), newArr);
+					Gene gene = new Gene(Integer.toString(id), id);
+					id++;
+					genes.add(gene);
+					allGenes.add(gene);
+				}
+				
+				else if(!map.containsKey(temp[j])){
 					ArrayList<Integer> newArr = new ArrayList<Integer>();
 					newArr.add(id);
 					newArr.add(1);
@@ -49,6 +61,7 @@ public class DataConverter {
 		//printStuff();
 		//printAllGenes();
 		replaceNonHomologs();
+		System.out.println("Data converted!");
 	}
 	
 	public void replaceNonHomologs(){
