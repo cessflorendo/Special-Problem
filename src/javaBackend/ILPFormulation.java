@@ -144,6 +144,7 @@ public class ILPFormulation {
 	}
 
 	public ArrayList<GeneSet> solve(RConnection c) throws RserveException, REXPMismatchException{
+		
 		StringBuilder ilp = new StringBuilder("");		
 		//ilp.append("install.packages('lpSolve')\n");
 		ilp.append("library(lpSolve)\n");
@@ -162,6 +163,12 @@ public class ILPFormulation {
 				int initial = 0;
 
 				for(int j=0; j<intervals.size(); j++){
+					if(intervals.get(j).size() == 0){
+						System.out.println(intervals.get(j).size());
+						results.clear(); 
+						getOutputString(solutions);
+						return results;
+					} 
 					for(int l=0; l<initial; l++){
 						mat.append("0,");
 					}
@@ -225,6 +232,8 @@ public class ILPFormulation {
 				System.out.println(finalSb);
 				
 				int cost = (int) Math.round(Double.parseDouble(c.eval(finalSb).asString()));
+				
+				System.out.println(cost);
 				if(cost < minimumCost){
 					minimumCost = cost;
 					results.clear();
@@ -266,23 +275,21 @@ public class ILPFormulation {
 		
 		format += "<br>";
 		if(results.size() > 0){
-			
+			for(int i=0; i<results.size(); i++){
+				format += "<b>Reference Gene Set <i>X</i></b>: " + results.get(i).toOrigString() + "<br>";
+				int genomeCount = 0;
+				for(int j=0; j<solutions.get(i).length; j++){				
+					if(solutions.get(i)[j] == 1){
+						format 	+= "<i>" + genomes.get(genomeCount).getGenomeName() + "</i>: " 
+								+ "(" + referenceGeneSet.get(j).getPositionStart() + ") "
+								+ referenceGeneSet.get(j).toOrigString() + "<br>";
+						genomeCount++;
+					}
+				} format += "<br>";
+			}
 		} else{
 			all += "Nothing to show";
 		}
-		for(int i=0; i<results.size(); i++){
-			format += "<b>Reference Gene Set <i>X</i></b>: " + results.get(i).toOrigString() + "<br>";
-			int genomeCount = 0;
-			for(int j=0; j<solutions.get(i).length; j++){				
-				if(solutions.get(i)[j] == 1){
-					format 	+= "<i>" + genomes.get(genomeCount).getGenomeName() + "</i>: " 
-							+ "(" + referenceGeneSet.get(j).getPositionStart() + ") "
-							+ referenceGeneSet.get(j).toOrigString() + "<br>";
-					genomeCount++;
-				}
-			} format += "<br>";
-		}
-		
 		
 		all = format + "\n" + all;
 		setOutput(all);

@@ -7,16 +7,12 @@ import java.awt.Image;
 import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.WindowEvent;
-import java.awt.event.WindowListener;
-import java.awt.image.BufferedImage;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
 
-import javax.imageio.ImageIO;
 import javax.swing.ButtonGroup;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
@@ -30,7 +26,6 @@ import javax.swing.JScrollPane;
 import javax.swing.JSeparator;
 import javax.swing.JSpinner;
 import javax.swing.JTabbedPane;
-import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.JTextPane;
 import javax.swing.SpinnerNumberModel;
@@ -40,14 +35,18 @@ import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import javax.swing.filechooser.FileNameExtensionFilter;
 
+import org.rosuda.REngine.REXPMismatchException;
 import org.rosuda.REngine.Rserve.RConnection;
+import org.rosuda.REngine.Rserve.RserveException;
+
+import componentActions.TabActions;
+import componentActions.WindowActions;
 import javaBackend.DataConverter;
 import javaBackend.ExportCSV;
 import javaBackend.ExportPDF;
 import javaBackend.GeneSet;
 import javaBackend.ILPFormulation;
 import net.miginfocom.swing.MigLayout;
-import rBackend.RConnector;
 
 public class Main {
 	private int additionalGeneWeight, missingGeneWeight, sizeRangeLower, sizeRangeHigher, maxGapSize, rWindowSize;
@@ -55,13 +54,12 @@ public class Main {
 	private DataConverter dc;
 	private ILPFormulation solve;
 	private ArrayList<GeneSet> results;
-	private RConnection r = null;
+	private RConnection r;
 
 	private int numOfGenomes = 0;
 	private JFrame frame;
 	private JPanel homeScreen;
 	private JPanel HS_title_panel;
-	private JPanel HS_buttons_panel;
 	private JButton HS_start_button;
 	private JButton HS_instructions_button;
 	private ImageIcon HS_logo;
@@ -102,7 +100,6 @@ public class Main {
 	private JRadioButton VP_FP_rWindows_rbtn;
 	private JLabel VP_CP_constraints_lbl;
 	private JLabel VP_CP_sizeRange_lbl;
-	private SpinnerNumberModel VP_CP_from_numberModel;
 	private JSpinner VP_CP_from_spnr;
 	private JSpinner VP_CP_to_spnr;
 	private JLabel VP_CP_additionalWeight_lbl;
@@ -170,32 +167,8 @@ public class Main {
 		UIManager.put("TabbedPane.tabInsets", new Insets(10,10,10,10));
 
 		frame = new JFrame();
-		frame.addWindowListener(new WindowListener(){
-
-			public void windowActivated(WindowEvent arg0) {}
-
-			public void windowClosed(WindowEvent arg0) {}
-
-			public void windowClosing(WindowEvent arg0) {
-				if(r!=null){
-					try {
-						r.shutdown();
-						System.out.println("R connector shutdown successful.");
-					} catch (Exception x) {
-						System.out.println("R code error: "+x.getMessage());
-					};
-				}
-			}
-
-			public void windowDeactivated(WindowEvent arg0) {}
-
-			public void windowDeiconified(WindowEvent arg0) {}
-
-			public void windowIconified(WindowEvent arg0) {}
-
-			public void windowOpened(WindowEvent arg0) {}
-
-		});
+		WindowActions window = new WindowActions(r);
+		frame.addWindowListener(window);
 		frame.setTitle("Approximate Gene Cluster Tool");
 		frame.setMinimumSize(new Dimension(800,600));
 		frame.setResizable(false);
@@ -205,9 +178,7 @@ public class Main {
 		homeScreen.setBackground(backgroundColor);
 		homeScreen.setLayout(new MigLayout("", "[grow][grow]", "[grow][grow][]"));
 		frame.add(homeScreen);
-
 		frame.setBackground(backgroundColor);
-
 		{
 
 			HS_title_panel = new JPanel();
@@ -221,7 +192,7 @@ public class Main {
 				logoImg = logoImg.getScaledInstance(200, 200, java.awt.Image.SCALE_SMOOTH);
 				HS_logo= new ImageIcon(logoImg);
 				HS_pic_label = new JLabel(HS_logo);
-				
+
 				HS_name_lbl = new JTextPane();
 				HS_name_lbl.setEditable(false);
 				HS_name_lbl.setMargin(new Insets(60, 20, 0, 0));
@@ -229,8 +200,8 @@ public class Main {
 				HS_name_lbl.setForeground(buttonColor);
 				HS_name_lbl.setText("Approximate Gene Cluster Discovery Tool");
 				HS_name_lbl.setFont(fontTitle);
-				
-	
+
+
 				HS_title_panel.add(HS_pic_label, "grow");
 				HS_title_panel.add(HS_name_lbl, "grow, span");
 			}
@@ -240,13 +211,12 @@ public class Main {
 				Color details = Color.decode("#E99FA6");
 				HS_details_panel.setBackground(details);
 			}
-			
+
 			Image img = new ImageIcon("images/arrow-point-to-right.png").getImage();
 			img = img.getScaledInstance(40, 40,  java.awt.Image.SCALE_SMOOTH);
 			ImageIcon startIcon = new ImageIcon(img);
 			HS_start_button = new JButton(startIcon);
 			HS_start_button.setText("Start");
-			//HS_start_button.setIcon((Icon) new ImageIcon("images/icon1.png").getImage());
 
 
 			HS_start_button.setFont(fontButton);
@@ -282,15 +252,11 @@ public class Main {
 					frame.repaint();
 				}
 			});
-
-			//	HS_buttons_panel.add(HS_start_button, "grow");
-			//	HS_buttons_panel.add(HS_instructions_button, "grow");
-			//}
 		}
 
 		homeScreen.add(HS_title_panel, "grow, span");
 		homeScreen.add(HS_details_panel, "grow, span");
-		
+
 		homeScreen.add(HS_start_button, "grow");
 		homeScreen.add(HS_instructions_button, "grow");
 		//homeScreen.add(HS_buttons_panel, "grow");
@@ -475,7 +441,6 @@ public class Main {
 				MD_IP_openFile_button.setBackground(buttonColor);
 				MD_IP_openFile_button.setForeground(buttonTextColor);
 				MD_IP_openFile_button.addActionListener(new ActionListener() {
-					@Override
 					public void actionPerformed(ActionEvent e) {
 						JFileChooser jfc = new JFileChooser();
 						jfc.setCurrentDirectory(new File(System.getProperty("user.dir")));
@@ -490,7 +455,11 @@ public class Main {
 								dc = new DataConverter(MD_IP_filename.getAbsolutePath());
 								MD_IP_preview_text.setText(dc.getAllGenomes());
 								MD_IP_previewConverted_text.setText(dc.getAllConvertedGenomes());
-								setNumOfGenomes(dc.getNumberOfGenomes());
+								if(dc.getNumberOfGenomes() == 2){
+									VP_FP_rWindows_rbtn.setEnabled(true);
+								} else {
+									VP_FP_rWindows_rbtn.setEnabled(false);
+								} VP_FP_rWindows_rbtn.setSelected(false);
 							} catch (IOException e1) {
 								e1.printStackTrace();
 							}
@@ -529,19 +498,7 @@ public class Main {
 				MD_IP_next_btn.setFont(fontButton);
 				MD_IP_next_btn.setBackground(buttonColor);
 				MD_IP_next_btn.setForeground(buttonTextColor);
-				MD_IP_next_btn.addActionListener(new ActionListener(){
-					public void actionPerformed(ActionEvent e) {
-						mainDisplay_pane.setEnabledAt(0, false);
-						mainDisplay_pane.setEnabledAt(1, true);
-						mainDisplay_pane.setEnabledAt(2, false);
-						mainDisplay_pane.setSelectedIndex(1);
-
-						if(numOfGenomes == 2){
-							VP_FP_rWindows_rbtn.setEnabled(true);
-							VP_FP_rWindows_rbtn.setSelected(false);
-						} else VP_FP_rWindows_rbtn.setEnabled(false);
-					}
-				});
+				MD_IP_next_btn.addActionListener(new TabActions(mainDisplay_pane, 1));
 
 				Image backImg = new ImageIcon("images/arrow-point-to-left.png").getImage();
 				backImg = backImg.getScaledInstance(25, 25,  java.awt.Image.SCALE_SMOOTH);
@@ -682,7 +639,7 @@ public class Main {
 					VP_CP_sizeRange_lbl.setText("Size Range: ");
 					VP_CP_sizeRange_lbl.setFont(fontPlain);
 
-					VP_CP_from_numberModel = new SpinnerNumberModel(0, 0, 9, 1);
+					new SpinnerNumberModel(0, 0, 9, 1);
 					//VP_CP_from_spnr = new JSpinner(VP_CP_from_numberModel);
 					VP_CP_from_spnr = new JSpinner();
 					VP_CP_from_spnr.setFont(fontPlain);
@@ -789,21 +746,13 @@ public class Main {
 					VP_RP_back_btn.setBackground(buttonColor);
 					VP_RP_back_btn.setForeground(buttonTextColor);
 					VP_RP_back_btn.setFont(fontButton);
-					VP_RP_back_btn.addActionListener(new ActionListener(){
-						@Override
-						public void actionPerformed(ActionEvent e) {
-							mainDisplay_pane.setEnabledAt(0, true);
-							mainDisplay_pane.setEnabledAt(1, false);
-							mainDisplay_pane.setEnabledAt(2, false);
-							mainDisplay_pane.setSelectedIndex(0);
-						}
-					});
+					VP_RP_back_btn.addActionListener(new TabActions(mainDisplay_pane, 0));
 
 					Image nextImg = new ImageIcon("images/arrow-point-to-right.png").getImage();
 					nextImg = nextImg.getScaledInstance(25, 25,  java.awt.Image.SCALE_SMOOTH);
 					ImageIcon nextIcon = new ImageIcon(nextImg);
 					VP_RP_next_btn = new JButton(nextIcon);
-					VP_RP_next_btn.setText("Next");
+					VP_RP_next_btn.setText("Solve");
 					VP_RP_next_btn.setBackground(buttonColor);
 					VP_RP_next_btn.setForeground(buttonTextColor);
 					VP_RP_next_btn.setFont(fontButton);
@@ -813,38 +762,23 @@ public class Main {
 
 
 					VP_RP_next_btn.addActionListener(new ActionListener(){
-
-						@Override
 						public void actionPerformed(ActionEvent e) {
 							mainDisplay_pane.setEnabledAt(0, false);
 							mainDisplay_pane.setEnabledAt(1, false);
 							mainDisplay_pane.setEnabledAt(2, true);
 							mainDisplay_pane.setSelectedIndex(2);
-							
-							
 
 							solve = new ILPFormulation(dc.getGenomes(), dc.getGenes(), dc.getMap(), additionalGeneWeight, missingGeneWeight, sizeRangeLower, sizeRangeHigher, getMaxGapSize(), getrWindowSize(), isBasicFormulation(), isCommonIntervals(), isMaxGap(), isrWindows());
 							solve.generateGeneSets();
 							results = new ArrayList<GeneSet>();
 
-							if(r==null){
-								System.out.println("result="+RConnector.checkLocalRserve());
-								try {
-									r = new RConnection();
-									results = solve.solve(r);
-									MD_RP_results_text.setText(solve.getOutput());							
-
-								} catch (Exception x) {
-									System.out.println("R code error: "+x.getMessage());
-								};
-							} else{
-								try {
-									results = solve.solve(r);
-									MD_RP_results_text.setText(solve.getOutput());
-								} catch (Exception x) {
-									System.out.println("R code error: "+x.getMessage());
-								};
-							}
+							try {
+								r = window.getConnection();
+								results = solve.solve(r);
+								MD_RP_results_text.setText(solve.getOutput());	
+							} catch (RserveException | REXPMismatchException e1) {
+								e1.printStackTrace();
+							}						
 						}
 					});
 				} 
@@ -876,7 +810,8 @@ public class Main {
 				MD_RP_back_btn.setFont(fontButton);
 				MD_RP_back_btn.setBackground(buttonColor);
 				MD_RP_back_btn.setForeground(buttonTextColor);
-				MD_RP_back_btn.addActionListener(new ActionListener(){
+				MD_RP_back_btn.addActionListener(new TabActions(mainDisplay_pane,1));
+				/*{
 					@Override
 					public void actionPerformed(ActionEvent e) {
 						mainDisplay_pane.setEnabledAt(0, false);
@@ -885,7 +820,7 @@ public class Main {
 						mainDisplay_pane.setSelectedIndex(1);
 						MD_RP_results_text.setText("");
 					}
-				});
+				});*/
 
 				Image exportImg = new ImageIcon("images/export.png").getImage();
 				exportImg = exportImg.getScaledInstance(25, 25,  java.awt.Image.SCALE_SMOOTH);
@@ -924,19 +859,27 @@ public class Main {
 							System.out.println(fileChooser.getSelectedFile());
 							try {
 								ExportPDF exportPdf = new ExportPDF(file);
-								exportPdf.write("henlo");
-								//exportPdf.write(results.);
-								/*
-								exportPdf.write("D- = " + sizeRangeLower);
-								exportPdf.write("D+ = " + sizeRangeHigher);
-								exportPdf.write("w- = " + missingGeneWeight);
-								exportPdf.write("w+ = " + additionalGeneWeight);
-
+								ArrayList<String> words = new ArrayList<String>();	
+								words.add(MD_IP_filename.getAbsolutePath());
+								if(VP_FP_commonIntervals_rbtn.isSelected()) words.add("Common Intervals");
+								else if(VP_FP_basic_rbtn.isSelected()) words.add("Basic Formulation");
+								else if(VP_FP_maxGap_rbtn.isSelected()) words.add("Max-gap");
+								else if(VP_FP_rWindows_rbtn.isSelected()) words.add("r-Windows");
+								words.add(Integer.toString((int) VP_CP_from_spnr.getValue()));
+								words.add(Integer.toString((int) VP_CP_to_spnr.getValue()));
+								words.add(Integer.toString((int) VP_CP_additional_spnr.getValue()));
+								words.add(Integer.toString((int) VP_CP_missing_spnr.getValue()));
+								if(VP_FP_maxGap_rbtn.isSelected()){
+									words.add(Integer.toString((int) VP_CP_gapSize_spnr.getValue()));
+								} else if(VP_FP_rWindows_rbtn.isSelected()){
+									words.add(Integer.toString((int) VP_CP_rWindowSize_spnr.getValue()));
+								}
+								exportPdf.writeConstraints(words);
 								for(int i=0; i<results.size(); i++){
+									exportPdf.writeResults("Reference Gene Set#" + (i+1), results.get(i).getGeneContentStr());
+								}
 
-									exportPdf.write(results.get(i).toOrigString());
-								}*/
-								exportPdf.save();
+
 								exportPdf.close();
 							} catch (IOException e1) {
 								e1.printStackTrace();
