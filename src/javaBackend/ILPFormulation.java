@@ -144,9 +144,7 @@ public class ILPFormulation {
 	}
 
 	public ArrayList<GeneSet> solve(RConnection c) throws RserveException, REXPMismatchException{
-		
-		StringBuilder ilp = new StringBuilder("");		
-		//ilp.append("install.packages('lpSolve')\n");
+		StringBuilder ilp = new StringBuilder("");
 		ilp.append("library(lpSolve)\n");
 		ArrayList<int[]> solutions = new ArrayList<int[]>();
 		int minimumCost;

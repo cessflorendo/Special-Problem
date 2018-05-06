@@ -9,6 +9,7 @@ public class DataConverter {
 	private ArrayList<Genome> convertedAllGenomes;
 	private ArrayList<Gene> allGenes;
 	private MapStringArrayList map;
+	private int maxGenomeSize; 
 
 	public DataConverter(String filePath) throws IOException{
 		System.out.println("Converting data...");
@@ -16,6 +17,7 @@ public class DataConverter {
 		convertedAllGenomes = new ArrayList<Genome>();
 		allGenes = new ArrayList<Gene>();
 		map = new MapStringArrayList();
+		setMaxGenomeSize(0);
 
 		String line = "";
 		int id = 1;
@@ -27,6 +29,9 @@ public class DataConverter {
 			Genome genome = new Genome(temp[0], i);
 			ArrayList<Gene> genes = new ArrayList<Gene>();
 
+			if(maxGenomeSize < (temp.length-1)){
+				this.maxGenomeSize = temp.length-1;
+			}
 			for(int j=1; j<temp.length; j++){
 				if(temp[j].equals("0")){
 					ArrayList<Integer> newArr = new ArrayList<Integer>();
@@ -170,6 +175,14 @@ public class DataConverter {
 		for(int i=0; i< allGenes.size(); i++){
 			System.out.println(allGenes.get(i).getGeneName() + " : " + allGenes.get(i).getGeneNumberRep());
 		}
+	}
+
+	public int getMaxGenomeSize() {
+		return maxGenomeSize;
+	}
+
+	public void setMaxGenomeSize(int maxGenomeSize) {
+		this.maxGenomeSize = maxGenomeSize;
 	}
 	
 

@@ -131,7 +131,9 @@ public class Main {
 	private JPanel VP_RP_buttons;
 	private JPanel HS_details_panel;
 	private JTextPane HS_name_lbl;
-	private Font fontTitle; 
+	private Font fontTitle;
+	private SpinnerNumberModel VP_CP_from_numberModel;
+	private SpinnerNumberModel VP_CP_to_numberModel; 
 
 	public Main(){
 		this.setAdditionalGeneWeight(0);
@@ -160,8 +162,7 @@ public class Main {
 
 
 	private void initialize(){
-		Color trial = Color.decode("#C1B6CA");
-		UIManager.put("TabbedPane.unselectedBackground", trial);
+		UIManager.put("TabbedPane.unselectedBackground", Color.decode("#C1B6CA"));
 		UIManager.put("TabbedPane.selected", buttonColor);
 		UIManager.put("TabbedPane.font", fontButton);
 		UIManager.put("TabbedPane.tabInsets", new Insets(10,10,10,10));
@@ -210,6 +211,7 @@ public class Main {
 			{
 				Color details = Color.decode("#E99FA6");
 				HS_details_panel.setBackground(details);
+				
 			}
 
 			Image img = new ImageIcon("images/arrow-point-to-right.png").getImage();
@@ -455,6 +457,9 @@ public class Main {
 								dc = new DataConverter(MD_IP_filename.getAbsolutePath());
 								MD_IP_preview_text.setText(dc.getAllGenomes());
 								MD_IP_previewConverted_text.setText(dc.getAllConvertedGenomes());
+								System.out.println(dc.getMaxGenomeSize());
+								VP_CP_from_numberModel.setMaximum(dc.getMaxGenomeSize());
+								VP_CP_to_numberModel.setMaximum(dc.getMaxGenomeSize());
 								if(dc.getNumberOfGenomes() == 2){
 									VP_FP_rWindows_rbtn.setEnabled(true);
 								} else {
@@ -639,12 +644,20 @@ public class Main {
 					VP_CP_sizeRange_lbl.setText("Size Range: ");
 					VP_CP_sizeRange_lbl.setFont(fontPlain);
 
-					new SpinnerNumberModel(0, 0, 9, 1);
-					//VP_CP_from_spnr = new JSpinner(VP_CP_from_numberModel);
-					VP_CP_from_spnr = new JSpinner();
+					VP_CP_from_numberModel = new SpinnerNumberModel(2, 2, 2, 1);
+					VP_CP_from_spnr = new JSpinner(VP_CP_from_numberModel);
+					//VP_CP_from_spnr = new JSpinner();
 					VP_CP_from_spnr.setFont(fontPlain);
-
-					VP_CP_to_spnr = new JSpinner();
+					VP_CP_from_spnr.addChangeListener(new ChangeListener(){
+						@SuppressWarnings("rawtypes")
+						public void stateChanged(ChangeEvent arg0) {
+							VP_CP_to_numberModel.setMinimum((Comparable) VP_CP_from_spnr.getValue());
+							VP_CP_to_numberModel.setValue(VP_CP_from_spnr.getValue());
+						}
+					});
+					
+					VP_CP_to_numberModel = new SpinnerNumberModel(2, 2, 2, 1);
+					VP_CP_to_spnr = new JSpinner(VP_CP_to_numberModel);
 					VP_CP_to_spnr.setFont(fontPlain);
 
 					VP_CP_additionalWeight_lbl = new JLabel();
