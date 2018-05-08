@@ -16,6 +16,7 @@ public class ILPFormulation {
 	private boolean basicFormulation,  commonIntervals,  maxGap,  rWindows;
 	private ArrayList<GeneSet> results = new ArrayList<GeneSet>();
 	private String output;
+	private ArrayList<ArrayList<String>> pdfOutput;
 
 	public ILPFormulation(ArrayList<Genome> genomes, ArrayList<Gene> genes, MapStringArrayList map, int additionalGeneWeight, int missingGeneWeight, int sizeRangeLower, int sizeRangeHigher, int maxGapSize, int kWindowSize, boolean basicFormulation, boolean commonIntervals, boolean maxGap, boolean rWindows){
 		this.genomes = genomes;
@@ -30,6 +31,7 @@ public class ILPFormulation {
 		this.rWindows = rWindows;
 		this.maxGapSize = maxGapSize;
 		this.kWindowSize = kWindowSize;
+		this.setPdfOutput(new ArrayList<ArrayList<String>>());
 
 		this.setAdditionalGeneWeight(additionalGeneWeight);
 		this.setMissingGeneWeight(missingGeneWeight);
@@ -52,9 +54,8 @@ public class ILPFormulation {
 
 		else if(rWindows){
 			additionalGeneWeight = 0;
-			missingGeneWeight = 1;
+			missingGeneWeight = 0;
 			maxGapSize = sizeRangeHigher - kWindowSize;
-			sizeRangeLower = sizeRangeHigher;
 		}
 
 		for(int i=0; i<genomes.size(); i++){
@@ -148,9 +149,10 @@ public class ILPFormulation {
 		ilp.append("library(lpSolve)\n");
 		ArrayList<int[]> solutions = new ArrayList<int[]>();
 		int minimumCost;
-		if(basicFormulation) minimumCost = Integer.MAX_VALUE;
-		else minimumCost = 0;
-	
+		//if(basicFormulation) 
+			minimumCost = Integer.MAX_VALUE;
+		//minimumCost = 0;
+
 		try {
 			for(int i=0; i<referenceGeneSet.size(); i++){
 				StringBuilder obj = new StringBuilder("obj = c(");
@@ -160,9 +162,9 @@ public class ILPFormulation {
 				StringBuilder lpS = new StringBuilder("ilp = ");
 				int initial = 0;
 
+				referenceGeneSet.get(i).print();
 				for(int j=0; j<intervals.size(); j++){
 					if(intervals.get(j).size() == 0){
-						System.out.println(intervals.get(j).size());
 						results.clear(); 
 						getOutputString(solutions);
 						return results;
@@ -178,12 +180,23 @@ public class ILPFormulation {
 							command.append("interval = c(" + intervals.get(j).get(k).toString() + ")\n");
 							command.append("intersection = refset-interval\n");
 							command.append("sum(interval)\n");
-							command.append("sum(intersection==1)\n");
+							command.append("sum(intersection==1) + sum(intersection==-1)\n");
 							int cost = c.eval(command.toString()).asInteger();
-							if(cost <= maxGapSize){
+							if (cost <= maxGapSize){
 								cost = 0;
 							}
-
+							obj.append(cost+",");
+							mat.append("1,");
+						}
+						else if(rWindows){
+							StringBuilder command = new StringBuilder("");
+							command.append("refset = c(" + referenceGeneSet.get(i).toString() + ")\n");
+							command.append("interval = c(" + intervals.get(j).get(k).toString() + ")\n");
+							command.append("intersection = refset-interval\n");
+							command.append("sum(interval)\n");
+							command.append("sum(intersection==1)\n");
+							int cost = c.eval(command.toString()).asInteger();
+					
 							obj.append(cost+",");
 							mat.append("1,");
 						}
@@ -228,13 +241,14 @@ public class ILPFormulation {
 				String finalSb = new String();
 				finalSb = ilp.toString() + obj.toString() + mat.toString() + dir.toString() + rhs.toString() + lpS.toString();
 				System.out.println(finalSb);
-				
+
 				int cost = (int) Math.round(Double.parseDouble(c.eval(finalSb).asString()));
-				
+
 				System.out.println(cost);
 				if(cost < minimumCost){
 					minimumCost = cost;
 					results.clear();
+					solutions.clear();
 					results.add(referenceGeneSet.get(i));
 					int[] solution = new int[referenceGeneSet.size()];
 					solution = c.eval("ilp$solution").asIntegers();
@@ -247,50 +261,85 @@ public class ILPFormulation {
 						solutions.add(solution);
 					}
 				}
-				
-				
 			}
 
 		} catch (Exception x) {
 			System.out.println("R code error: "+x.getMessage());
 		};
-	
+
 		getOutputString(solutions);
 		return results;
 	}
-	
+
 	private void getOutputString(ArrayList<int[]> solutions){
-		String all = "";
-		String format = "D- = " + this.sizeRangeLower + "<br>" +
-				"D+ = " + this.sizeRangeHigher + "<br>" +
+		String all = "", format = "";
+		if(rWindows){
+			format = 
+					"D- = " + this.sizeRangeLower + "<br>" +
+							"D+ = " + this.sizeRangeHigher + "<br>";
+		} else{
+			format = 
+					"D- = " + this.sizeRangeLower + "<br>" +
+							"D+ = " + this.sizeRangeHigher + "<br>";
+		}
+		format += 
 				"w- = " + this.missingGeneWeight + "<br>" +
-				"w+ = " + this.additionalGeneWeight + "<br>";
+						"w+ = " + this.additionalGeneWeight + "<br>";
 		if(maxGap){
 			format += "Max gap = " + this.maxGapSize + "<br>";
 		} else if(rWindows){
 			format += "r = " + this.kWindowSize + "<br>";
 		}
-		
+
 		format += "<br>";
 		if(results.size() > 0){
+			for(int i=0; i<solutions.size(); i++){
+				for(int j=0; j<solutions.get(i).length; j++){
+					System.out.print(solutions.get(i)[j] + " ");
+				} System.out.println();
+			}
 			for(int i=0; i<results.size(); i++){
 				format += "<b>Reference Gene Set <i>X</i></b>: " + results.get(i).toOrigString() + "<br>";
+
+				ArrayList<String> outputLine = new ArrayList<String>();
+				outputLine.add("Reference Gene Set # " + (i+1));
+				outputLine.addAll(results.get(i).getGeneContentStr());
+				pdfOutput.add(outputLine);
 				int genomeCount = 0;
-				for(int j=0; j<solutions.get(i).length; j++){				
+				for(int j=0; j<solutions.get(i).length; j++){
+					//System.out.println(solutions.get(i)[j] + " ");
 					if(solutions.get(i)[j] == 1){
+						//System.out.println(i + " " + j);
+						outputLine = new ArrayList<String>();
+						outputLine.add(genomes.get(genomeCount).getGenomeName());
+						outputLine.addAll(compareGenes(results.get(i).getGeneContentStr(), referenceGeneSet.get(j).getGeneContentStr()));
+
+						pdfOutput.add(outputLine);
 						format 	+= "<i>" + genomes.get(genomeCount).getGenomeName() + "</i>: " 
 								+ "(" + referenceGeneSet.get(j).getPositionStart() + ") "
 								+ referenceGeneSet.get(j).toOrigString() + "<br>";
 						genomeCount++;
-					}
-				} format += "<br>";
+					} 
+				} 
+				//System.out.println();
+				format += "<br>";
 			}
 		} else{
 			all += "Nothing to show";
 		}
-		
+
 		all = format + "\n" + all;
 		setOutput(all);
+	}
+
+	private ArrayList<String> compareGenes(ArrayList<String> x, ArrayList<String> genome){
+		ArrayList<String> res = new ArrayList<String>();
+		for(int i=0; i<x.size(); i++){
+			if(genome.contains(x.get(i))){
+				res.add(x.get(i));
+			} else res.add("--");
+		}
+		return res;
 	}
 
 	private void printPartitions(ArrayList<GeneSet> allPartitions){
@@ -419,5 +468,13 @@ public class ILPFormulation {
 
 	public void setOutput(String output) {
 		this.output = output;
+	}
+
+	public ArrayList<ArrayList<String>> getPdfOutput() {
+		return pdfOutput;
+	}
+
+	public void setPdfOutput(ArrayList<ArrayList<String>> pdfOutput) {
+		this.pdfOutput = pdfOutput;
 	}
 }

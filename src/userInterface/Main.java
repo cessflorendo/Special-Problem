@@ -57,7 +57,7 @@ public class Main {
 	private RConnection r;
 
 	private int numOfGenomes = 0;
-	private JFrame frame;
+	JFrame frame;
 	private JPanel homeScreen;
 	private JPanel HS_title_panel;
 	private JButton HS_start_button;
@@ -147,9 +147,9 @@ public class Main {
 		this.setMaxGap(false);
 		this.setrWindows(false);
 		fontTitle = new Font("Lucida Sans Unicode", Font.PLAIN, 48);
-		fontButton = new Font("Lucida Sans Unicode", Font.BOLD, 14);
-		fontText = new Font("Lucida Sans Unicode", Font.PLAIN, 14);
-		fontPlain =  new Font("Lucida Sans Unicode", Font.PLAIN, 14);
+		fontButton = new Font("Lucida Sans Unicode", Font.BOLD, 16);
+		fontText = new Font("Lucida Sans Unicode", Font.PLAIN, 16);
+		fontPlain =  new Font("Lucida Sans Unicode", Font.PLAIN, 16);
 		backgroundColor = Color.decode("#BB649B");
 
 		backgroundColor = Color.decode("#FEFCFC");
@@ -211,7 +211,7 @@ public class Main {
 			{
 				Color details = Color.decode("#E99FA6");
 				HS_details_panel.setBackground(details);
-				
+
 			}
 
 			Image img = new ImageIcon("images/arrow-point-to-right.png").getImage();
@@ -219,8 +219,8 @@ public class Main {
 			ImageIcon startIcon = new ImageIcon(img);
 			HS_start_button = new JButton(startIcon);
 			HS_start_button.setText("Start");
-
-
+			
+			
 			HS_start_button.setFont(fontButton);
 			HS_start_button.setForeground(buttonTextColor);
 			HS_start_button.setBackground(buttonColor);
@@ -472,7 +472,7 @@ public class Main {
 					}
 				});
 
-
+				
 				MD_IP_preview_lbl = new JLabel();
 				MD_IP_preview_lbl.setText("Original data: ");
 				MD_IP_preview_lbl.setFont(fontButton);
@@ -521,15 +521,19 @@ public class Main {
 						frame.repaint();
 					}
 				});
-
+	
+				
 				MD_input_panel.add(MD_IP_openFile_button);
 				MD_input_panel.add(MD_IP_filename_text, "growx, span");
+				
+				
 				MD_input_panel.add(MD_IP_preview_lbl, "growx, span");
 				MD_input_panel.add(MD_IP_preview_scr, "grow, span");
 				MD_input_panel.add(MD_IP_previewConverted_lbl, "growx, span");
 				MD_input_panel.add(MD_IP_previewConverted_scr, "grow, span");
 				MD_input_panel.add(MD_IP_mainMenu_btn, "tag left");
 				MD_input_panel.add(MD_IP_next_btn, "tag right, span");
+				
 			}
 
 
@@ -580,6 +584,11 @@ public class Main {
 								VP_CP_to_spnr.setEnabled(true);
 								VP_CP_missing_spnr.setEnabled(true);
 								VP_CP_additional_spnr.setEnabled(true);
+
+								setBasicFormulation(false);
+								setCommonIntervals(false);
+								setMaxGap(false);
+								setrWindows(false);
 							}
 							else{
 								VP_CP_from_spnr.setEnabled(false);
@@ -652,10 +661,12 @@ public class Main {
 						@SuppressWarnings("rawtypes")
 						public void stateChanged(ChangeEvent arg0) {
 							VP_CP_to_numberModel.setMinimum((Comparable) VP_CP_from_spnr.getValue());
-							VP_CP_to_numberModel.setValue(VP_CP_from_spnr.getValue());
+							if((int)VP_CP_to_spnr.getValue() < (int)VP_CP_from_spnr.getValue()){
+								VP_CP_to_spnr.setValue(VP_CP_from_spnr.getValue());
+							}
 						}
 					});
-					
+
 					VP_CP_to_numberModel = new SpinnerNumberModel(2, 2, 2, 1);
 					VP_CP_to_spnr = new JSpinner(VP_CP_to_numberModel);
 					VP_CP_to_spnr.setFont(fontPlain);
@@ -781,10 +792,13 @@ public class Main {
 							mainDisplay_pane.setEnabledAt(2, true);
 							mainDisplay_pane.setSelectedIndex(2);
 
+							if(rWindows){
+								VP_CP_from_spnr.setValue(VP_CP_to_spnr.getValue());
+							}
 							solve = new ILPFormulation(dc.getGenomes(), dc.getGenes(), dc.getMap(), additionalGeneWeight, missingGeneWeight, sizeRangeLower, sizeRangeHigher, getMaxGapSize(), getrWindowSize(), isBasicFormulation(), isCommonIntervals(), isMaxGap(), isrWindows());
 							solve.generateGeneSets();
 							results = new ArrayList<GeneSet>();
-
+							VP_CP_from_spnr.setValue(VP_CP_from_numberModel.getMinimum());
 							try {
 								r = window.getConnection();
 								results = solve.solve(r);
@@ -888,11 +902,7 @@ public class Main {
 									words.add(Integer.toString((int) VP_CP_rWindowSize_spnr.getValue()));
 								}
 								exportPdf.writeConstraints(words);
-								for(int i=0; i<results.size(); i++){
-									exportPdf.writeResults("Reference Gene Set#" + (i+1), results.get(i).getGeneContentStr());
-								}
-
-
+								exportPdf.writeResults(results.size(), solve.getPdfOutput());
 								exportPdf.close();
 							} catch (IOException e1) {
 								e1.printStackTrace();
