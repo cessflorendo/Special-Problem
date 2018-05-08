@@ -134,7 +134,6 @@ public class DataConverter {
 			for(int j=0; j<allGenomes.get(i).size(); j++){
 				res += allGenomes.get(i).getGene(j).getGeneName() + " ";
 			} res += "<br>";
-			
 		}
 		return res;
 	}
@@ -158,7 +157,6 @@ public class DataConverter {
 			for(int j=0; j<allGenomes.get(i).size(); j++){
 				res += allGenomes.get(i).getGene(j).getGeneNumberRep() + " ";
 			} res += "<br>";
-			
 		}
 		return res;
 	}
