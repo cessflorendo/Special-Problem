@@ -4,6 +4,7 @@ import java.util.ArrayList;
 public class GeneSet {
 	private ArrayList<Gene> geneSet;
 	private ArrayList<String> geneContentStr;
+	private ArrayList<Integer> geneContent;
 	private String strRep;
 	private int strSum;
 	private int positionStart;
@@ -48,9 +49,14 @@ public class GeneSet {
 	
 	public void setGeneContentStr(ArrayList<Gene> genes){
 		this.geneContentStr = new ArrayList<String>();
+		this.geneContent = new ArrayList<Integer>();
 		for(int i=0; i<genes.size(); i++){
 			if(!geneContentStr.contains(genes.get(i).getGeneName())){
 				geneContentStr.add(genes.get(i).getGeneName());
+			}
+			
+			if(!geneContent.contains(genes.get(i).getGeneNumberRep())){
+				geneContent.add(genes.get(i).getGeneNumberRep());
 			}
 		}
 	}
@@ -68,7 +74,7 @@ public class GeneSet {
 		this.strRep = "";
 		int strSum = 0;
 		for(int i=0; i<allGenes.size(); i++){
-			if(geneContentStr.contains(allGenes.get(i).getGeneName())){
+			if(geneContent.contains(allGenes.get(i).getGeneNumberRep())){
 				this.strRep += "1,";
 				strSum += 1;
 			} else{
@@ -103,5 +109,13 @@ public class GeneSet {
 
 	public void setStrSum(int strSum) {
 		this.strSum = strSum;
+	}
+
+	public ArrayList<Integer> getGeneContent() {
+		return geneContent;
+	}
+
+	public void setGeneContent(ArrayList<Integer> geneContent) {
+		this.geneContent = geneContent;
 	}
 }

@@ -23,7 +23,9 @@ public class DataConverter {
 		int id = 1;
 		@SuppressWarnings("resource")
 		BufferedReader br = new BufferedReader(new FileReader(filePath));
-
+		
+		allGenes.add(new Gene("0", 0));
+		
 		for(int i = 0; (line = br.readLine()) != null; i++){
 			String[] temp = line.split(",");
 			Genome genome = new Genome(temp[0], i);
@@ -74,8 +76,16 @@ public class DataConverter {
 			for(int j=0; j<allGenomes.get(i).getGenes().size(); j++){
 				if(map.getMappingOccurence(allGenomes.get(i).getGenes().get(j).getGeneName()) == 1){
 					allGenomes.get(i).getGenes().get(j).setGeneNumberRep(0);
-
 				}
+			}
+		} reduceGenes();
+	}
+	
+	private void reduceGenes(){
+		for(int i=1; i<allGenes.size(); i++){
+			if(allGenes.get(i).getGeneNumberRep() == 0){
+				allGenes.remove(i);
+				i--;
 			}
 		}
 	}

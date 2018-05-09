@@ -64,21 +64,41 @@ public class ILPFormulation {
 			referenceGeneSet.addAll(partitions);
 			intervals.add(partitions);
 			totalNoOfIntervals += partitions.size();
-		} printPartitions(referenceGeneSet);
+		} 
+		//partitionReferenceGeneSet();
+		printPartitions(referenceGeneSet);
 		printIntervals();
 	}
+	/*
+	private void partitionReferenceGeneSet(){
+		for(int i=0; i<this.genes.size()-sizeRangeLower; i++){
+			if(commonIntervals) continue;
+			ArrayList<Gene> newGeneSet = new ArrayList<Gene>(); 
+			for(int j=i; j<i+sizeRangeHigher; j++){
+				if(j<genes.size()){
+					newGeneSet.add(genes.get(j));
+					if(j-i+1>=sizeRangeLower && j-i+1 <=sizeRangeHigher){
+						GeneSet geneSet = new GeneSet(new ArrayList<Gene>(newGeneSet), this.genes, i);
+						referenceGeneSet.add(geneSet);
+					}
+				} else break;	
+			}
+		}
+	}*/
 
 	private ArrayList<GeneSet> partitionList (Genome genome, int maxgap, int sizeRangeLower, int sizeRangeHigher) {
 		ArrayList<GeneSet> allPartitions = new ArrayList<GeneSet>();
 		ArrayList<Integer> list = genome.getGenomeRep();
-
+		
 		for(int i=0; i<list.size(); i++){
 			ArrayList<Gene> genes = new ArrayList<Gene>();
 			int gapCounter = 0;
 
 			for(int j=i; i<=j && j<genome.size(); j++){
 				int size = j-i+1;
-				if(size > sizeRangeHigher){ break;	}
+				if(size > sizeRangeHigher){
+					break;	
+				}
 				else if (size < sizeRangeLower && size < sizeRangeHigher){
 					if(basicFormulation){
 						genes.add(genome.getGene(j));
@@ -97,11 +117,12 @@ public class ILPFormulation {
 						}
 					}
 				}
-
+				
 				else if ((size >= sizeRangeLower && size <= sizeRangeHigher)){
 					if(basicFormulation){
 						genes.add(genome.getGene(j));
 						GeneSet newGeneSet = new GeneSet(new ArrayList<Gene>(genes), this.genes, i);
+						
 						if(newGeneSet.getStrSum()>=sizeRangeLower){
 							allPartitions.add(newGeneSet);
 						}
@@ -162,7 +183,6 @@ public class ILPFormulation {
 				StringBuilder lpS = new StringBuilder("ilp = ");
 				int initial = 0;
 
-				referenceGeneSet.get(i).print();
 				for(int j=0; j<intervals.size(); j++){
 					if(intervals.get(j).size() == 0){
 						results.clear(); 
@@ -240,11 +260,11 @@ public class ILPFormulation {
 
 				String finalSb = new String();
 				finalSb = ilp.toString() + obj.toString() + mat.toString() + dir.toString() + rhs.toString() + lpS.toString();
-				System.out.println(finalSb);
+				//System.out.println(finalSb);
 
 				int cost = (int) Math.round(Double.parseDouble(c.eval(finalSb).asString()));
 
-				System.out.println(cost);
+				//System.out.println(cost);
 				if(cost < minimumCost){
 					minimumCost = cost;
 					results.clear();
@@ -293,11 +313,6 @@ public class ILPFormulation {
 
 		format += "<br>";
 		if(results.size() > 0){
-			for(int i=0; i<solutions.size(); i++){
-				for(int j=0; j<solutions.get(i).length; j++){
-					System.out.print(solutions.get(i)[j] + " ");
-				} System.out.println();
-			}
 			for(int i=0; i<results.size(); i++){
 				format += "<b>Reference Gene Set <i>X</i></b>: " + results.get(i).toOrigString() + "<br>";
 
@@ -307,9 +322,19 @@ public class ILPFormulation {
 				pdfOutput.add(outputLine);
 				int genomeCount = 0;
 				for(int j=0; j<solutions.get(i).length; j++){
-					//System.out.println(solutions.get(i)[j] + " ");
 					if(solutions.get(i)[j] == 1){
-						//System.out.println(i + " " + j);
+						/*
+						int genCount = 0;
+						int intervalCount = j; 
+				
+						for(int k=0; k<intervals.size(); k++){
+							if(intervals.get(k).size()-1 < intervalCount){
+								intervalCount -= intervals.get(k).size();
+							} else if(intervalCount < intervals.get(k).size()){
+								genCount = k;
+								break;
+							}
+						}*/
 						outputLine = new ArrayList<String>();
 						outputLine.add(genomes.get(genomeCount).getGenomeName());
 						outputLine.addAll(compareGenes(results.get(i).getGeneContentStr(), referenceGeneSet.get(j).getGeneContentStr()));
@@ -321,7 +346,6 @@ public class ILPFormulation {
 						genomeCount++;
 					} 
 				} 
-				//System.out.println();
 				format += "<br>";
 			}
 		} else{

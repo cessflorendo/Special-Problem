@@ -32,6 +32,10 @@ public class MapStringArrayList{
 		return (ArrayList<Integer>)map.get(key);
 	}
 
+	public void removeMapping(){
+		
+	}
+	
 	public int getIntegerMapping(String key){
 		return (int) map.get(key).get(0);
 	}
