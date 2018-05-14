@@ -17,12 +17,6 @@
 	<classpathentry kind="lib" path="C:/Users/Cess/Documents/R/win-library/3.3/Rserve/java/REngine.jar"/>
 	<classpathentry kind="lib" path="C:/Users/Cess/Documents/R/win-library/3.3/Rserve/java/Rserve.jar"/>
 	<classpathentry kind="lib" path="C:/Users/Cess/Downloads/miglayout/miglayout15-swing.jar"/>
-	<classpathentry kind="lib" path="C:/Users/Cess/workspace/Special Problem/pdflib/fontbox-2.0.9.jar"/>
-	<classpathentry kind="lib" path="C:/Users/Cess/workspace/Special Problem/pdflib/pdfbox-2.0.9.jar"/>
-	<classpathentry kind="lib" path="C:/Users/Cess/workspace/Special Problem/pdflib/pdfbox-debugger-2.0.9.jar"/>
-	<classpathentry kind="lib" path="C:/Users/Cess/workspace/Special Problem/pdflib/pdfbox-tools-2.0.9.jar"/>
-	<classpathentry kind="lib" path="C:/Users/Cess/workspace/Special Problem/pdflib/preflight-2.0.9.jar"/>
-	<classpathentry kind="lib" path="C:/Users/Cess/workspace/Special Problem/pdflib/xmpbox-2.0.9.jar"/>
 	<classpathentry kind="con" path="org.eclipse.m2e.MAVEN2_CLASSPATH_CONTAINER">
 		<attributes>
 			<attribute name="maven.pomderived" value="true"/>

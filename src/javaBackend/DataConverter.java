@@ -4,7 +4,9 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
 
-public class DataConverter {
+import javax.swing.SwingWorker;
+
+public class DataConverter extends SwingWorker<Void, Void>{
 	private ArrayList<Genome> allGenomes;
 	private ArrayList<Genome> convertedAllGenomes;
 	private ArrayList<Gene> allGenes;
@@ -177,13 +179,14 @@ public class DataConverter {
 			allGenomes.get(i).printConvertedGenes();
 		}
 	}
-
+	
+	/*
 	private void printAllGenes(){
 		System.out.println("All Genes");
 		for(int i=0; i< allGenes.size(); i++){
 			System.out.println(allGenes.get(i).getGeneName() + " : " + allGenes.get(i).getGeneNumberRep());
 		}
-	}
+	}*/
 
 	public int getMaxGenomeSize() {
 		return maxGenomeSize;
@@ -191,6 +194,11 @@ public class DataConverter {
 
 	public void setMaxGenomeSize(int maxGenomeSize) {
 		this.maxGenomeSize = maxGenomeSize;
+	}
+
+	@Override
+	protected Void doInBackground() throws Exception {
+		return null;
 	}
 	
 
