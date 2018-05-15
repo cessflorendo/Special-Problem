@@ -5,6 +5,7 @@ public class GeneSet {
 	private ArrayList<Gene> geneSet;
 	private ArrayList<String> geneContentStr;
 	private ArrayList<Integer> geneContent;
+	private ArrayList<String> refSetContent;
 	private String strRep;
 	private int strSum;
 	private int positionStart;
@@ -50,6 +51,7 @@ public class GeneSet {
 	public void setGeneContentStr(ArrayList<Gene> genes){
 		this.geneContentStr = new ArrayList<String>();
 		this.geneContent = new ArrayList<Integer>();
+		this.refSetContent = new ArrayList<String>();
 		for(int i=0; i<genes.size(); i++){
 			if(!geneContentStr.contains(genes.get(i).getGeneName())){
 				geneContentStr.add(genes.get(i).getGeneName());
@@ -57,6 +59,10 @@ public class GeneSet {
 			
 			if(!geneContent.contains(genes.get(i).getGeneNumberRep())){
 				geneContent.add(genes.get(i).getGeneNumberRep());
+			}
+			
+			if(!refSetContent.contains(genes.get(i).getGeneName()) && genes.get(i).getGeneNumberRep()!=0){
+				refSetContent.add(genes.get(i).getGeneName());
 			}
 		}
 	}
@@ -76,7 +82,7 @@ public class GeneSet {
 		for(int i=0; i<allGenes.size(); i++){
 			if(geneContent.contains(allGenes.get(i).getGeneNumberRep())){
 				this.strRep += "1,";
-				strSum += 1;
+				if(allGenes.get(i).getGeneNumberRep()!=0) strSum += 1;
 			} else{
 				this.strRep += "0,";
 			}
@@ -88,6 +94,17 @@ public class GeneSet {
 
 	public String toString(){
 		return strRep;
+	}
+	
+	public String getRefSetString(){
+		String res = "";
+		for(int i=0; i<refSetContent.size(); i++){
+			res += refSetContent.get(i) + " ";
+		} return res + "\n";
+	}
+	
+	public ArrayList<String> getRefSetArr(){
+		return this.refSetContent;
 	}
 
 	public String toOrigString(){
@@ -117,5 +134,9 @@ public class GeneSet {
 
 	public void setGeneContent(ArrayList<Integer> geneContent) {
 		this.geneContent = geneContent;
+	}
+	
+	public ArrayList<Gene> getGenes(){
+		return this.geneSet;
 	}
 }

@@ -13,6 +13,7 @@ public class RConnector {
 	 @param rsrvargs arguments to be passed to Rserve
 	 @return <code>true</code> if Rserve is running or was successfully started, <code>false</code> otherwise.
 	 */
+	@SuppressWarnings("unused")
 	public static boolean launchRserve(String cmd, String rargs, String rsrvargs, boolean debug) {
 		if (isRserveRunning()) return true;
 		try {

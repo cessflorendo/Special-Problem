@@ -22,7 +22,6 @@ import java.util.ArrayList;
 import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
 import java.util.stream.Collectors;
-
 import javax.imageio.ImageIO;
 import javax.swing.DefaultListCellRenderer;
 import javax.swing.ImageIcon;
@@ -46,6 +45,10 @@ import javax.swing.SpinnerNumberModel;
 import javax.swing.SwingConstants;
 import javax.swing.SwingWorker;
 import javax.swing.UIManager;
+import javax.swing.WindowConstants;
+import javax.swing.border.CompoundBorder;
+import javax.swing.border.EmptyBorder;
+import javax.swing.border.LineBorder;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import javax.swing.event.ListSelectionEvent;
@@ -137,7 +140,6 @@ public class Main{
 	private JComboBox<String> MD_VP_group;
 	private Container MD_variables_panel;
 	private JLabel MD_VP_constraints_lbl;
-	private JLabel MD_VP_sizeRange_lbl;
 	private SpinnerNumberModel MD_VP_from_numberModel;
 	private JSpinner MD_VP_from_spnr;
 	private SpinnerNumberModel MD_VP_to_numberModel;
@@ -154,7 +156,7 @@ public class Main{
 	private JButton MD_VP_next_btn;
 	private JPanel aboutScreen;
 	private JButton AS_back_btn;
-	private JTextArea AS_about_text;
+	private JEditorPane AS_about_text;
 	private Color mainColor;
 	private JList<String> MD_results_list;
 	private JProgressBar progressBar;
@@ -168,6 +170,28 @@ public class Main{
 	private JLabel MD_RP_positions_lbl;
 	private JLabel MD_RP_constraints_lbl;
 	private String[] res;
+	private JTextPane MD_IP_about;
+	private Font fontPlainSmall;
+	private JTextPane MD_PP_preview_about;
+	private JTextPane MD_PP_previewConverted_about;
+	private JTextPane MD_VP_formulation_about;
+	private JTextPane MD_VP_constraints_about;
+	private Color panelColor;
+	private JLabel MD_VP_sizeRangeHigher_lbl;
+	private JLabel MD_VP_sizeRangeLower_lbl;
+	private JPanel AS_title_panel;
+	private JLabel AS_pic_label;
+	private JTextPane AS_name_lbl;
+	private JPanel IP_general_title_panel;
+	private JLabel IP_general_pic_label;
+	private JTextPane IP_general_name_lbl;
+	private JPanel IP_constraints_title_panel;
+	private JLabel IP_constraints_pic_label;
+	private JTextPane IP_constraints_name_lbl;
+	private JPanel IP_limitations_title_panel;
+	private JLabel IP_limitations_pic_label;
+	private JTextPane IP_limitations_name_lbl;
+	private Font fontTitleSmaller;
 	public Main() throws IOException{
 		this.setAdditionalGeneWeight(0);
 		this.setMissingGeneWeight(0);
@@ -180,9 +204,11 @@ public class Main{
 		this.setMaxGap(false);
 		this.setrWindows(false);
 		fontTitle = new Font("Courier New", Font.BOLD, 80);
+		fontTitleSmaller = new Font("Courier New", Font.BOLD, 60);
 		fontButton = new Font("Dialog Input", Font.BOLD, 20);
 		fontText = new Font("Dialog Input", Font.PLAIN, 22);
 		fontPlain =  new Font("Dialog Input", Font.PLAIN, 16);
+		fontPlainSmall =  new Font("Dialog Input", Font.PLAIN, 14);
 		fontPlainBold =  new Font("Dialog Input", Font.BOLD, 18);
 		largeText = new Font("Dialog Input", Font.PLAIN, 22);
 
@@ -191,6 +217,8 @@ public class Main{
 		buttonColor = Color.decode("#292F33");
 		buttonTextColor = Color.decode("#E1E8ED");
 		tabPaneColor = Color.decode("#CCD6DD");
+		panelColor = Color.decode("#dcebf2");
+		
 		UIManager.put("TabbedPane.unselectedBackground", new ColorUIResource(tabPaneColor));
 		UIManager.put("TabbedPane.foreground", new ColorUIResource(buttonTextColor));
 		UIManager.put("TabbedPane.selectedForeground", new ColorUIResource(mainColor));
@@ -207,8 +235,6 @@ public class Main{
 		UIManager.put("List.foreground", Color.black);
 		UIManager.put("List.selectionBackground", mainColor);
 		UIManager.put("List.selectionForeground", Color.white);
-
-
 
 		UIManager.put("ComboBox.selectionBackground", Color.decode("#CCD6DD"));
 
@@ -228,6 +254,7 @@ public class Main{
 		frame.setBackground(mainColor);
 		frame.setTitle("InteGene");
 		frame.setMinimumSize(new Dimension(800,600));
+		frame.setMaximumSize(new Dimension(800,600));
 		frame.setResizable(false);
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		frame.setIconImage(new ImageIcon(getResourceImg("icon1.png").getScaledInstance(200, 200, java.awt.Image.SCALE_SMOOTH)).getImage());
@@ -243,13 +270,24 @@ public class Main{
 			public void windowClosed(WindowEvent arg0) {}
 			public void windowClosing(WindowEvent arg0) {
 				if(r!=null){
+					
+					MessageDialog quit = new MessageDialog("Quit", "Quit application?");
+					boolean exit = false;
 					try {
-						r.shutdown();
-						MessageDialog md = new MessageDialog("Shutdown", "Shutdown succesful.", "INFORMATION_MESSAGE");
-						md.createDialog();
-					} catch (Exception x) {
-						System.out.println("R code error: "+x.getMessage());
+						exit = quit.createQuestionDialog();
+					} catch (IOException e) {
+						e.printStackTrace();
 					}
+					if(exit){
+						try{
+							r.shutdown();
+							System.exit(1);
+						} catch (Exception x) {
+							System.out.println("R code error: "+x.getMessage());
+						}
+					}
+					else
+						frame.setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
 				} else{
 					try {
 						MessageDialog md = new MessageDialog("Shutdown", "Shutdown succesful.", "INFORMATION_MESSAGE", new ImageIcon(getResourceImg("info.png").getScaledInstance(40, 40, java.awt.Image.SCALE_SMOOTH)));
@@ -265,6 +303,7 @@ public class Main{
 			public void windowIconified(WindowEvent arg0) {}
 			public void windowOpened(WindowEvent arg0) {
 				progressBar.setIndeterminate(true);
+				
 				TaskOpenR openR = new TaskOpenR();
 				try {
 					openR.doInBackground();
@@ -286,7 +325,6 @@ public class Main{
 				HS_title_panel.setLayout(new MigLayout("insets 0 100 0 100", "[grow][grow]", "[grow]"));
 				HS_title_panel.setBackground(backgroundColor);
 
-				HS_pic_label = new JLabel();
 				HS_pic_label = new JLabel(new ImageIcon(getResourceImg("icon1.png").getScaledInstance(150, 150, java.awt.Image.SCALE_SMOOTH)));
 				HS_pic_label.getInsets().set(0, 50, 0, 0);
 
@@ -381,10 +419,24 @@ public class Main{
 					frame.repaint();
 				}
 			};
-
+			
 			IP_general = new JPanel();{
-				IP_general.setLayout(new MigLayout("insets 20", "[grow]", "[grow]20[]"));
+				IP_general.setLayout(new MigLayout("insets 20", "[grow]", "[][grow]20[]"));
 				IP_general.setBackground(backgroundColor);
+				
+				IP_general_title_panel = new JPanel();
+				IP_general_title_panel.setLayout(new MigLayout("insets 10 180 0 100", "[grow][grow]", "[grow]20[grow]"));
+				IP_general_title_panel.setBackground(backgroundColor);
+				IP_general_pic_label = new JLabel(new ImageIcon(getResourceImg("icon1.png").getScaledInstance(100, 100, java.awt.Image.SCALE_SMOOTH)));
+				IP_general_name_lbl = new JTextPane();
+				IP_general_name_lbl.setEditable(false);
+				IP_general_name_lbl.setMargin(new Insets(15, 0, 0, 0));
+				IP_general_name_lbl.setBackground(backgroundColor);
+				IP_general_name_lbl.setForeground(mainColor);
+				IP_general_name_lbl.setText("InteGene");
+				IP_general_name_lbl.setFont(fontTitleSmaller);
+				IP_general_title_panel.add(IP_general_pic_label, "grow");
+				IP_general_title_panel.add(IP_general_name_lbl, "grow");
 
 				IP_mainMenu1 = new JButton(new ImageIcon(getResourceImg("arrow-point-to-left.png").getScaledInstance(25, 25, java.awt.Image.SCALE_SMOOTH)));
 				IP_mainMenu1.setText("Main Menu");
@@ -395,19 +447,37 @@ public class Main{
 				IP_mainMenu1.setMargin(new Insets(5,15,5,15));
 
 				IP_general_text = new JEditorPane("text/html", "");
+				IP_general_text.setBackground(panelColor);
 				IP_general_text.setMargin(new Insets(20,20,20,20));
 				IP_general_text.setFont(fontPlain);
 				String fontfamily = IP_general_text.getFont().getFamily();
 				IP_general_text.setText("<html><body style=\"font-family: " + fontfamily + "\"" + getResourceFileAsString("how-to-use.txt") + "<html>");
 				IP_general_text.setEditable(false);
 				IP_general_text_scr = new JScrollPane(IP_general_text);
+				IP_general_text_scr.setBorder(new CompoundBorder(new EmptyBorder(0, 0, 0, 0), new LineBorder(mainColor, 1)));
+				
+				IP_general.add(IP_general_title_panel, "span");
 				IP_general.add(IP_general_text_scr, "grow, span");
 				IP_general.add(IP_mainMenu1, "tag left");
 
 			}
 			IP_constraints = new JPanel();{
 				IP_constraints.setBackground(backgroundColor);
-				IP_constraints.setLayout(new MigLayout("insets 20", "[grow]", "[grow]20[]"));
+				IP_constraints.setLayout(new MigLayout("insets 20", "[grow]", "[][grow]20[]"));
+				
+				IP_constraints_title_panel = new JPanel();
+				IP_constraints_title_panel.setLayout(new MigLayout("insets 10 180 0 100", "[grow][grow]", "[grow]20[grow]"));
+				IP_constraints_title_panel.setBackground(backgroundColor);
+				IP_constraints_pic_label = new JLabel(new ImageIcon(getResourceImg("icon1.png").getScaledInstance(100, 100, java.awt.Image.SCALE_SMOOTH)));
+				IP_constraints_name_lbl = new JTextPane();
+				IP_constraints_name_lbl.setEditable(false);
+				IP_constraints_name_lbl.setMargin(new Insets(15, 0, 0, 0));
+				IP_constraints_name_lbl.setBackground(backgroundColor);
+				IP_constraints_name_lbl.setForeground(mainColor);
+				IP_constraints_name_lbl.setText("InteGene");
+				IP_constraints_name_lbl.setFont(fontTitleSmaller);
+				IP_constraints_title_panel.add(IP_constraints_pic_label, "grow");
+				IP_constraints_title_panel.add(IP_constraints_name_lbl, "grow");
 
 				IP_mainMenu2 = new JButton(new ImageIcon(getResourceImg("arrow-point-to-left.png").getScaledInstance(25, 25, java.awt.Image.SCALE_SMOOTH)));
 				IP_mainMenu2.setText("Main Menu");
@@ -420,19 +490,36 @@ public class Main{
 				IP_constraints_text = new JEditorPane("text/html", "");
 				IP_constraints_text.setMargin(new Insets(20,20,20,20));
 				IP_constraints_text.setFont(fontText);
-
+				IP_constraints_text.setBackground(panelColor);
 				String fontfamily = IP_constraints_text.getFont().getFamily();
 				IP_constraints_text.setText("<html><body style=\"font-family: " + fontfamily + "\"" + getResourceFileAsString("constraints.txt") + "<html>");
 				IP_constraints_text.setEditable(false);
 				IP_constraints_text_scr = new JScrollPane(IP_constraints_text);
+				IP_constraints_text_scr.setBorder(new CompoundBorder(new EmptyBorder(0, 0, 0, 0), new LineBorder(mainColor, 1)));
+			
+				IP_constraints.add(IP_constraints_title_panel, "span");
 				IP_constraints.add(IP_constraints_text_scr, "grow, span");
 				IP_constraints.add(IP_mainMenu2, "tag left");
 			}
 			IP_limitations = new JPanel();{
 				IP_limitations.setBackground(backgroundColor);
-				IP_limitations.setLayout(new MigLayout("insets 20", "[grow]", "[grow]20[]"));
+				IP_limitations.setLayout(new MigLayout("insets 20", "[grow]", "[][grow]20[]"));
 				IP_limitations.setFont(fontPlain);
 
+				IP_limitations_title_panel = new JPanel();
+				IP_limitations_title_panel.setLayout(new MigLayout("insets 10 180 0 100", "[grow][grow]", "[grow]20[grow]"));
+				IP_limitations_title_panel.setBackground(backgroundColor);
+				IP_limitations_pic_label = new JLabel(new ImageIcon(getResourceImg("icon1.png").getScaledInstance(100, 100, java.awt.Image.SCALE_SMOOTH)));
+				IP_limitations_name_lbl = new JTextPane();
+				IP_limitations_name_lbl.setEditable(false);
+				IP_limitations_name_lbl.setMargin(new Insets(15, 0, 0, 0));
+				IP_limitations_name_lbl.setBackground(backgroundColor);
+				IP_limitations_name_lbl.setForeground(mainColor);
+				IP_limitations_name_lbl.setText("InteGene");
+				IP_limitations_name_lbl.setFont(fontTitleSmaller);
+				IP_limitations_title_panel.add(IP_limitations_pic_label, "grow");
+				IP_limitations_title_panel.add(IP_limitations_name_lbl, "grow");
+				
 				IP_mainMenu3 = new JButton(new ImageIcon(getResourceImg("arrow-point-to-left.png").getScaledInstance(25, 25, java.awt.Image.SCALE_SMOOTH)));
 				IP_mainMenu3.setText("Main Menu");
 				IP_mainMenu3.setFont(fontButton);
@@ -444,12 +531,15 @@ public class Main{
 				IP_limitations_text = new JEditorPane("text/html", "");
 				IP_limitations_text.setMargin(new Insets(20,20,20,20));
 				IP_limitations_text.setFont(fontText);
+				IP_limitations_text.setBackground(panelColor);
 
 				String fontfamily = IP_limitations_text.getFont().getFamily();
 				IP_limitations_text.setText("<html><body style=\"font-family: " + fontfamily + "\"" + getResourceFileAsString("limitations.txt") + "<html>");
-
 				IP_limitations_text.setEditable(false);
 				IP_limitations_text_scr = new JScrollPane(IP_limitations_text);
+				IP_limitations_text_scr.setBorder(new CompoundBorder(new EmptyBorder(0, 0, 0, 0), new LineBorder(mainColor, 1)));
+				
+				IP_limitations.add(IP_limitations_title_panel, "span");
 				IP_limitations.add(IP_limitations_text_scr, "grow, span");
 				IP_limitations.add(IP_mainMenu3, "tag left");
 			}
@@ -464,10 +554,31 @@ public class Main{
 
 		aboutScreen = new JPanel();{
 			aboutScreen.setBackground(backgroundColor);
-			aboutScreen.setLayout(new MigLayout("insets 50 50 50 50", "[grow]", "[grow]20[]"));
+			aboutScreen.setLayout(new MigLayout("insets 20", "[grow]", "[grow][grow]20[]"));
 
-			AS_about_text = new JTextArea();
-			AS_about_text.setForeground(backgroundColor);
+			AS_title_panel = new JPanel();
+			AS_title_panel.setLayout(new MigLayout("insets 0 100 0 100", "[grow][grow]", "[grow]"));
+			AS_title_panel.setBackground(backgroundColor);
+
+			AS_pic_label = new JLabel(new ImageIcon(getResourceImg("icon1.png").getScaledInstance(150, 150, java.awt.Image.SCALE_SMOOTH)));
+			AS_pic_label.getInsets().set(0, 50, 0, 0);
+
+			AS_name_lbl = new JTextPane();
+			AS_name_lbl.setEditable(false);
+			AS_name_lbl.setMargin(new Insets(80, 0, 0, 0));
+			AS_name_lbl.setBackground(backgroundColor);
+			AS_name_lbl.setForeground(mainColor);
+			AS_name_lbl.setText("InteGene");
+			AS_name_lbl.setFont(fontTitle);
+
+			AS_title_panel.add(AS_pic_label, "grow");
+			AS_title_panel.add(AS_name_lbl, "grow");
+			
+			AS_about_text = new JEditorPane("text/html", "");
+			AS_about_text.setFont(fontPlain);
+			AS_about_text.setBackground(backgroundColor);
+			String fontfamily = AS_about_text.getFont().getFamily();
+			AS_about_text.setText("<html><body style=\"font-family: " + fontfamily + "\"" + getResourceFileAsString("about.txt") + "<html>");
 
 
 			AS_back_btn = new JButton(new ImageIcon(getResourceImg("arrow-point-to-left.png").getScaledInstance(25, 25, java.awt.Image.SCALE_SMOOTH)));
@@ -479,6 +590,7 @@ public class Main{
 			AS_back_btn.setIconTextGap(10);
 			AS_back_btn.addActionListener(IP_mainMenu_listener);
 
+			aboutScreen.add(AS_title_panel, "grow, span");
 			aboutScreen.add(AS_about_text, "grow, span");
 			aboutScreen.add(AS_back_btn, "tag left");
 
@@ -494,7 +606,7 @@ public class Main{
 
 		{
 			MD_input_panel = new JPanel();{
-				MD_input_panel.setLayout(new MigLayout("insets 50", "[][grow]", "[]10[]10[grow]10[]"));
+				MD_input_panel.setLayout(new MigLayout("insets 20", "[][grow]", "[][]10[]10[grow]10[]"));
 
 				JLabel label = new JLabel();
 				label.setText("Select input data: ");
@@ -502,9 +614,14 @@ public class Main{
 				label.setForeground(Color.black);
 
 				MD_input_panel.setBackground(backgroundColor);
-
 				MD_IP_filename = null;
-
+				
+				MD_IP_about = new JTextPane();
+				MD_IP_about.setBackground(backgroundColor);
+				MD_IP_about.setFont(fontPlainSmall);
+				MD_IP_about.setMargin(new Insets(0,0,0,0));
+				MD_IP_about.setEditable(false);
+				MD_IP_about.setText("File must be in CSV format and each row must contain the genome name followed by the genes in the genome. ");
 
 				MD_IP_openFile_button = new JButton(new ImageIcon(getResourceImg("folder.png").getScaledInstance(25, 25, java.awt.Image.SCALE_SMOOTH)));
 				MD_IP_openFile_button.setText("Open CSV File");
@@ -513,12 +630,14 @@ public class Main{
 				MD_IP_openFile_button.setBackground(buttonColor);
 				MD_IP_openFile_button.setForeground(buttonTextColor);
 				MD_IP_openFile_button.setIconTextGap(10);
+				MD_IP_openFile_button.setFocusPainted(false);
 
 				MD_IP_filename_text = new JTextField();
-				MD_IP_filename_text.setMargin(new Insets(5,15,5,15));
+				MD_IP_filename_text.setMargin(new Insets(7,10,7,10));
 				MD_IP_filename_text.setFont(fontPlain);
 				MD_IP_filename_text.setEditable(false);
 				MD_IP_filename_text.setBackground(backgroundColor);
+				
 				MD_IP_openFile_button.addActionListener(new ActionListener() {
 					public void actionPerformed(ActionEvent e) {
 						JFileChooser jfc = new JFileChooser();
@@ -544,6 +663,7 @@ public class Main{
 				MD_IP_preview = new JTextArea();
 				MD_IP_preview.setFont(fontPlain);
 				MD_IP_preview_scr = new JScrollPane(MD_IP_preview);
+				MD_IP_preview.setEditable(false);
 				MD_IP_preview.setMargin(new Insets(10,10,10,10));
 
 				MD_IP_next_btn = new JButton(new ImageIcon(getResourceImg("arrow-point-to-right.png").getScaledInstance(25, 25, java.awt.Image.SCALE_SMOOTH)));
@@ -555,6 +675,7 @@ public class Main{
 				MD_IP_next_btn.setBackground(buttonColor);
 				MD_IP_next_btn.setForeground(buttonTextColor);
 				MD_IP_next_btn.setIconTextGap(10);
+				MD_IP_next_btn.setFocusPainted(false);
 				MD_IP_next_btn.addActionListener(new TabActions(mainDisplay_pane, 1));
 
 				MD_IP_mainMenu_btn = new JButton(new ImageIcon(getResourceImg("arrow-point-to-left.png").getScaledInstance(25, 25, java.awt.Image.SCALE_SMOOTH)));
@@ -564,10 +685,13 @@ public class Main{
 				MD_IP_mainMenu_btn.setBackground(buttonColor);
 				MD_IP_mainMenu_btn.setForeground(buttonTextColor);
 				MD_IP_mainMenu_btn.setIconTextGap(10);
+				MD_IP_mainMenu_btn.setFocusPainted(false);
 				MD_IP_mainMenu_btn.addActionListener(new ActionListener(){
 					public void actionPerformed(ActionEvent arg0) {
 						frame.remove(mainDisplay_pane);
 						frame.setContentPane(homeScreen);
+						frame.setSize(800, 600);
+						frame.setResizable(false);
 						frame.revalidate(); 
 						frame.repaint();
 					}
@@ -578,6 +702,7 @@ public class Main{
 				MD_input_progressBar.setStringPainted(true);
 
 				MD_input_panel.add(label, "span");
+				MD_input_panel.add(MD_IP_about, "span");
 				MD_input_panel.add(MD_IP_openFile_button);
 				MD_input_panel.add(MD_IP_filename_text, "growx, span");
 				MD_input_panel.add(MD_IP_preview_scr, "grow, span");
@@ -589,12 +714,20 @@ public class Main{
 
 			MD_preview_panel = new JPanel();
 			{
-				MD_preview_panel.setLayout(new MigLayout("insets 20, wrap 4", "[grow]", "[][150px, grow]10[][150px, grow]10[]"));
+				MD_preview_panel.setLayout(new MigLayout("insets 20, wrap 4", "[grow]", "[][]10[150px, grow]10[][]10[150px, grow]10[]"));
 				MD_preview_panel.setBackground(backgroundColor);
 
 				MD_PP_preview_lbl = new JLabel();
 				MD_PP_preview_lbl.setText("Original data: ");
-				MD_PP_preview_lbl.setFont(fontButton);
+				MD_PP_preview_lbl.setFont(largeText);
+				MD_PP_preview_lbl.getInsets().set(0, 0, 0, 0);
+				
+				MD_PP_preview_about = new JTextPane();
+				MD_PP_preview_about.setBackground(backgroundColor);
+				MD_PP_preview_about.setFont(fontPlainSmall);
+				MD_PP_preview_about.setText("Provided below is the data as represented in the file. ");
+				MD_PP_preview_about.setEditable(false);
+				MD_PP_preview_about.setMargin(new Insets(0,0,0,0));
 
 				MD_PP_preview_text = new JEditorPane("text/html", "");
 				MD_PP_preview_text.putClientProperty(JEditorPane.HONOR_DISPLAY_PROPERTIES, Boolean.TRUE);
@@ -604,7 +737,15 @@ public class Main{
 
 				MD_PP_previewConverted_lbl = new JLabel();
 				MD_PP_previewConverted_lbl.setText("Converted data: ");
-				MD_PP_previewConverted_lbl.setFont(fontButton);
+				MD_PP_previewConverted_lbl.setFont(largeText);
+				MD_PP_previewConverted_lbl.getInsets().set(0, 0, 0, 0);
+				
+				MD_PP_previewConverted_about = new JTextPane();
+				MD_PP_previewConverted_about.setBackground(backgroundColor);
+				MD_PP_previewConverted_about.setFont(fontPlainSmall);
+				MD_PP_previewConverted_about.setText("Provided below is the converted data wherein the genes are represented as positive integers and non-homologs are represented as 0's.");
+				MD_PP_previewConverted_about.setEditable(false);
+				MD_PP_previewConverted_about.setMargin(new Insets(0,0,0,0));
 
 				MD_PP_previewConverted_text = new JEditorPane("text/html", "");
 				MD_PP_previewConverted_text.putClientProperty(JEditorPane.HONOR_DISPLAY_PROPERTIES, Boolean.TRUE);
@@ -620,6 +761,7 @@ public class Main{
 				MD_PP_back_btn.setBackground(buttonColor);
 				MD_PP_back_btn.setForeground(buttonTextColor);
 				MD_PP_back_btn.setIconTextGap(10);
+				MD_PP_back_btn.setFocusPainted(false);
 				MD_PP_back_btn.addActionListener(new TabActions(mainDisplay_pane, 0));
 
 				MD_PP_next_btn = new JButton(new ImageIcon(getResourceImg("arrow-point-to-right.png").getScaledInstance(25, 25, java.awt.Image.SCALE_SMOOTH)));
@@ -630,11 +772,14 @@ public class Main{
 				MD_PP_next_btn.setBackground(buttonColor);
 				MD_PP_next_btn.setForeground(buttonTextColor);
 				MD_PP_next_btn.setIconTextGap(10);
+				MD_PP_next_btn.setFocusPainted(false);
 				MD_PP_next_btn.addActionListener(new TabActions(mainDisplay_pane, 2));
 
 				MD_preview_panel.add(MD_PP_preview_lbl, "growx, span, wrap");
+				MD_preview_panel.add(MD_PP_preview_about, "growx, span, wrap");
 				MD_preview_panel.add(MD_PP_preview_scr, "grow, span, wrap");
 				MD_preview_panel.add(MD_PP_previewConverted_lbl, "growx, span, wrap");
+				MD_preview_panel.add(MD_PP_previewConverted_about, "growx, span, wrap");
 				MD_preview_panel.add(MD_PP_previewConverted_scr, "grow, span, wrap");
 				MD_preview_panel.add(MD_PP_back_btn, "tag left");
 				MD_preview_panel.add(MD_PP_next_btn, "tag right, span");
@@ -642,12 +787,19 @@ public class Main{
 
 
 			MD_variables_panel = new JPanel();{
-				MD_variables_panel.setLayout(new MigLayout("insets 50", "[grow]", "[grow][grow]20[grow][grow][grow][grow][grow][grow][grow]20[]"));
+				MD_variables_panel.setLayout(new MigLayout("insets 20, aligny 50%", "[grow]", "[grow]10[grow][grow]10[grow][fill]10[]"));
 				MD_variables_panel.setBackground(backgroundColor);
 
 				MD_VP_formulation_lbl = new JLabel();
 				MD_VP_formulation_lbl.setFont(largeText);
 				MD_VP_formulation_lbl.setText("Choose formulation to use: ");
+				
+				MD_VP_formulation_about = new JTextPane();
+				MD_VP_formulation_about.setFont(fontPlainSmall);
+				MD_VP_formulation_about.setBackground(panelColor);
+				MD_VP_formulation_about.setMargin(new Insets(0,0,0,0));
+				MD_VP_formulation_about.setEditable(false);
+				MD_VP_formulation_about.setText("The formulation describes the kind of gene clusters being looked for. For definitions, refer to Getting Started in the home screen. ");
 
 				String[] types = {"General", "Common Intervals", "Max Gap", "r-Windows"};
 				MD_VP_group = new JComboBox<String>(types);
@@ -656,6 +808,14 @@ public class Main{
 				MD_VP_group.setSelectedItem(0);
 				setBasicFormulation(true);
 
+				JPanel formulation = new JPanel();
+				formulation.setBackground(panelColor);
+				formulation.setLayout(new MigLayout("aligny 50%", "[grow]", "[]5[]15[]"));
+				
+				formulation.add(MD_VP_formulation_lbl, "grow, span");
+				formulation.add(MD_VP_formulation_about, "grow, span");
+				formulation.add(MD_VP_group, "grow, span");
+				
 				ActionListener formulationListener = new ActionListener(){
 					@Override
 					public void actionPerformed(ActionEvent e) {
@@ -708,14 +868,25 @@ public class Main{
 				};
 
 				MD_VP_group.addActionListener(formulationListener);
-
+				
 				MD_VP_constraints_lbl = new JLabel();
 				MD_VP_constraints_lbl.setText("Input constraints: ");
 				MD_VP_constraints_lbl.setFont(largeText);
+					
+				MD_VP_constraints_about = new JTextPane();
+				MD_VP_constraints_about.setBackground(panelColor);
+				MD_VP_constraints_about.setFont(fontPlainSmall);
+				MD_VP_constraints_about.setMargin(new Insets(0,0,0,0));
+				MD_VP_constraints_about.setEditable(false);
+				MD_VP_constraints_about.setText("The input constraints define further the kind of gene clusters being looked for. The definitions of each can also be found in Getting Started in the home screen.");
 
-				MD_VP_sizeRange_lbl = new JLabel();
-				MD_VP_sizeRange_lbl.setText("Size Range: ");
-				MD_VP_sizeRange_lbl.setFont(fontPlain);
+				MD_VP_sizeRangeLower_lbl = new JLabel();
+				MD_VP_sizeRangeLower_lbl.setText("Size (lower bound): D-");
+				MD_VP_sizeRangeLower_lbl.setFont(fontPlain);
+				
+				MD_VP_sizeRangeHigher_lbl = new JLabel();
+				MD_VP_sizeRangeHigher_lbl.setText("(upper bound) D+");
+				MD_VP_sizeRangeHigher_lbl.setFont(fontPlain);
 
 				MD_VP_from_numberModel = new SpinnerNumberModel(2, 2, 2, 1);
 				MD_VP_from_spnr = new JSpinner(MD_VP_from_numberModel);
@@ -735,28 +906,28 @@ public class Main{
 				MD_VP_to_spnr.setFont(fontPlain);
 
 				MD_VP_additionalWeight_lbl = new JLabel();
-				MD_VP_additionalWeight_lbl.setText("Integer Weights (+): ");
+				MD_VP_additionalWeight_lbl.setText("Additional Gene Weight (w+) ");
 				MD_VP_additionalWeight_lbl.setFont(fontPlain);
 
 				MD_VP_additional_spnr = new JSpinner();
 				MD_VP_additional_spnr.setFont(fontPlain);
 
 				MD_VP_missingWeight_lbl = new JLabel();
-				MD_VP_missingWeight_lbl.setText("Integer Weights (-): ");
+				MD_VP_missingWeight_lbl.setText("Missing Gene Weight (w-)");
 				MD_VP_missingWeight_lbl.setFont(fontPlain);
 
 				MD_VP_missing_spnr = new JSpinner();
 				MD_VP_missing_spnr.setFont(fontPlain);
 
 				MD_VP_gapSize_lbl = new JLabel();
-				MD_VP_gapSize_lbl.setText("Gap Size: ");
+				MD_VP_gapSize_lbl.setText("Max Gap Size");
 				MD_VP_gapSize_lbl.setFont(fontPlain);
 
 				MD_VP_gapSize_spnr = new JSpinner();
 				MD_VP_gapSize_spnr.setFont(fontPlain);
 
 				MD_VP_rWindowSize_Lbl = new JLabel();
-				MD_VP_rWindowSize_Lbl.setText("k Size: ");
+				MD_VP_rWindowSize_Lbl.setText("k Size");
 				MD_VP_rWindowSize_Lbl.setFont(fontPlain);
 
 				MD_VP_rWindowSize_spnr = new JSpinner();
@@ -801,7 +972,29 @@ public class Main{
 						setrWindowSize((int)MD_VP_rWindowSize_spnr.getValue());
 					}
 				});
+				
+				JPanel constraints = new JPanel();
+				constraints.setBackground(panelColor);
+				constraints.setLayout(new MigLayout("aligny 50%", "[grow]5[grow]10[grow]5[grow]", "[]5[]15[]10[]10[]"));
+				
+				constraints.add(MD_VP_constraints_lbl, "growx, span");
+				constraints.add(MD_VP_constraints_about, "growx, span");
+				
+				constraints.add(MD_VP_sizeRangeLower_lbl, "grow, tag right");
+				constraints.add(MD_VP_from_spnr, "grow");
+				constraints.add(MD_VP_sizeRangeHigher_lbl, "grow, tag right");
+				constraints.add(MD_VP_to_spnr, "grow, span");
+				
 
+				constraints.add(MD_VP_missingWeight_lbl, "grow, tag right");
+				constraints.add(MD_VP_missing_spnr, "grow");
+				constraints.add(MD_VP_additionalWeight_lbl, "grow, tag right");		
+				constraints.add(MD_VP_additional_spnr, "grow, span");
+			
+				constraints.add(MD_VP_gapSize_lbl, "grow, tag right");
+				constraints.add(MD_VP_gapSize_spnr, "grow");	
+				constraints.add(MD_VP_rWindowSize_Lbl, "grow, tag right");
+				constraints.add(MD_VP_rWindowSize_spnr, "grow, span");
 
 				MD_VP_back_btn = new JButton(new ImageIcon(getResourceImg("arrow-point-to-left.png").getScaledInstance(25, 25, java.awt.Image.SCALE_SMOOTH)));
 				MD_VP_back_btn.setText("Back");
@@ -810,6 +1003,7 @@ public class Main{
 				MD_VP_back_btn.setForeground(buttonTextColor);
 				MD_VP_back_btn.setFont(fontButton);
 				MD_VP_back_btn.setIconTextGap(10);
+				MD_VP_back_btn.setFocusPainted(false);
 				MD_VP_back_btn.addActionListener(new TabActions(mainDisplay_pane, 1));
 
 				MD_VP_next_btn = new JButton(new ImageIcon(getResourceImg("arrow-point-to-right.png").getScaledInstance(25, 25, java.awt.Image.SCALE_SMOOTH)));
@@ -819,13 +1013,13 @@ public class Main{
 				MD_VP_next_btn.setBackground(buttonColor);
 				MD_VP_next_btn.setForeground(buttonTextColor);
 				MD_VP_next_btn.setFont(fontButton);
+				MD_VP_next_btn.setFocusPainted(false);
 				MD_VP_next_btn.setIconTextGap(10);
 				
 				ListSelectionListener listener = new ListSelectionListener(){
 					@Override
 					public void valueChanged(ListSelectionEvent e) {
 						int selected = MD_results_list.getSelectedIndex();
-						System.out.println(selected);
 						MD_RP_results_text.setText(res[selected]);
 					}
 				};
@@ -852,24 +1046,10 @@ public class Main{
 					}
 				});
 
-				MD_variables_panel.add(MD_VP_formulation_lbl, "growx, span");
-				MD_variables_panel.add(MD_VP_group, "grow, span");
+				MD_variables_panel.add(formulation, "grow, span");
 				formulation_constraints_sep = new JSeparator();
 				MD_variables_panel.add(formulation_constraints_sep, "grow, span");
-				MD_variables_panel.add(MD_VP_constraints_lbl, "growx, span");
-				MD_variables_panel.add(MD_VP_sizeRange_lbl, "tag right");
-				MD_variables_panel.add(MD_VP_from_spnr, "grow");
-				MD_variables_panel.add(MD_VP_to_spnr, "grow, span");	
-				MD_variables_panel.add(MD_VP_additionalWeight_lbl, "tag right");		
-				MD_variables_panel.add(MD_VP_additional_spnr, "grow, span");	
-				MD_variables_panel.add(MD_VP_missingWeight_lbl, "tag right");
-				MD_variables_panel.add(MD_VP_missing_spnr, "grow, span");
-				MD_variables_panel.add(MD_VP_gapSize_lbl, "tag right");
-				MD_variables_panel.add(MD_VP_gapSize_spnr, "grow, span");	
-				MD_variables_panel.add(MD_VP_rWindowSize_Lbl, "tag right");
-				MD_variables_panel.add(MD_VP_rWindowSize_spnr, "grow, span");
-
-
+				MD_variables_panel.add(constraints, "grow, span");
 				constraints_prog_sep = new JSeparator();
 				MD_variables_panel.add(constraints_prog_sep, "grow, span");
 				MD_VP_progressBar = new JProgressBar();
@@ -877,9 +1057,7 @@ public class Main{
 				MD_VP_progressBar.setFont(fontPlainBold);
 				MD_VP_progressBar.setValue(0);
 				MD_VP_progressBar.setStringPainted(true);
-
 				MD_variables_panel.add(MD_VP_progressBar, " grow, span");
-
 				MD_variables_panel.add(MD_VP_back_btn, " tag left");
 				MD_variables_panel.add(MD_VP_next_btn, " tag right, span");
 
@@ -888,7 +1066,7 @@ public class Main{
 			}
 
 			MD_results_panel = new JPanel();{
-				MD_results_panel.setLayout(new MigLayout("insets 20", "[grow]10[grow]", "[][grow]10[]10[]10[]"));
+				MD_results_panel.setLayout(new MigLayout("insets 20", "[grow]10[grow]", "[][grow]20[]10[]10[]"));
 				MD_results_panel.setBackground(backgroundColor);
 
 				MD_RP_results_lbl = new JLabel();
@@ -903,7 +1081,7 @@ public class Main{
 
 				MD_RP_constraints_lbl = new JLabel();
 				MD_RP_constraints_lbl.setBackground(backgroundColor);
-				MD_RP_constraints_lbl.setText("Input Constraints: ");
+				MD_RP_constraints_lbl.setText("Summary: ");
 				MD_RP_constraints_lbl.setFont(largeText);
 
 
@@ -912,17 +1090,26 @@ public class Main{
 				DefaultListCellRenderer renderer = (DefaultListCellRenderer)MD_results_list.getCellRenderer();
 				renderer.setHorizontalAlignment(JLabel.CENTER);
 				MD_results_list_scr = new JScrollPane(MD_results_list);
-				MD_results_list.setBackground(backgroundColor);
+				MD_results_list.setBackground(panelColor);
 				MD_results_list.setForeground(mainColor);
+				//MD_results_list_scr.setViewportBorder(null);
+				//MD_results_list_scr.setBorder(null);
+
+				MD_results_list_scr.setBorder(new CompoundBorder(new EmptyBorder(0, 0, 0, 0), new LineBorder(mainColor, 1)));
 
 				MD_RP_results_text = new JEditorPane("text/html", "");
+				MD_RP_results_text.setFont(fontPlainSmall);
 				MD_RP_results_text.setEditable(false);
 				MD_RP_results_scr = new JScrollPane(MD_RP_results_text);
 				MD_RP_results_text.setBackground(Color.decode("#E1E8ED"));
+				MD_RP_results_scr.setBorder(new CompoundBorder(new EmptyBorder(0, 0, 0, 0), new LineBorder(mainColor, 1)));
+				
 
 				MD_RP_constraints_text = new JEditorPane("text/html", "");
 				MD_RP_constraints_text.setBackground(Color.decode("#CCD6DD"));
 				MD_RP_constraints_text.setForeground(Color.white);
+				MD_RP_constraints_text.setBorder(new CompoundBorder(new EmptyBorder(0, 0, 0, 0), new LineBorder(mainColor, 1)));
+				
 
 				JPanel buttons = new JPanel();
 				buttons.setLayout(new MigLayout("insets 0", "[grow]10[grow]10[grow]", "[grow]"));
@@ -933,6 +1120,7 @@ public class Main{
 				MD_RP_back_btn.setMargin(new Insets(5,15,5,15));
 				MD_RP_back_btn.setFont(fontButton);
 				MD_RP_back_btn.setBackground(buttonColor);
+				MD_RP_back_btn.setFocusPainted(false);
 				MD_RP_back_btn.setForeground(buttonTextColor);
 				MD_RP_back_btn.setIconTextGap(10);
 				MD_RP_back_btn.addActionListener(new TabActions(mainDisplay_pane,2));
@@ -943,6 +1131,7 @@ public class Main{
 				MD_RP_exportPDF_btn.setBackground(buttonColor);
 				MD_RP_exportPDF_btn.setFont(fontButton);
 				MD_RP_exportPDF_btn.setForeground(buttonTextColor);
+				MD_RP_exportPDF_btn.setFocusPainted(false);
 				MD_RP_exportPDF_btn.setIconTextGap(10);
 
 				MD_RP_exportCSV_btn = new JButton(new ImageIcon(getResourceImg("export.png").getScaledInstance(25, 25, java.awt.Image.SCALE_SMOOTH)));
@@ -951,6 +1140,7 @@ public class Main{
 				MD_RP_exportCSV_btn.setBackground(buttonColor);
 				MD_RP_exportCSV_btn.setForeground(buttonTextColor);
 				MD_RP_exportCSV_btn.setFont(fontButton);
+				MD_RP_exportCSV_btn.setFocusPainted(false);
 				MD_RP_exportCSV_btn.setIconTextGap(10);
 
 				buttons.add(MD_RP_back_btn, "grow");
@@ -959,10 +1149,10 @@ public class Main{
 
 				MD_results_panel.add(MD_RP_results_lbl, "growx, span");
 				MD_results_panel.add(MD_results_list_scr, "grow, span");
-				MD_results_panel.add(MD_RP_positions_lbl, "growx");
-				MD_results_panel.add(MD_RP_constraints_lbl, "grow, span");
-				MD_results_panel.add(MD_RP_results_scr, "grow");
-				MD_results_panel.add(MD_RP_constraints_text, "grow, span");
+				MD_results_panel.add(MD_RP_constraints_lbl, "growx");
+				MD_results_panel.add(MD_RP_positions_lbl, "growx, span");
+				MD_results_panel.add(MD_RP_constraints_text, "grow");
+				MD_results_panel.add(MD_RP_results_scr, "grow, span");
 				MD_results_panel.add(buttons, "growx, span");
 				MD_RP_exportPDF_btn.addActionListener(new ActionListener(){
 					public void actionPerformed(ActionEvent e){
@@ -977,7 +1167,6 @@ public class Main{
 						fileChooser.setFileFilter(pdfFilter);
 						if (fileChooser.showSaveDialog(fileChooser) == JFileChooser.APPROVE_OPTION) {
 							File file = new File(fileChooser.getSelectedFile().getAbsolutePath());
-							System.out.println(fileChooser.getSelectedFile());
 							try {
 								ExportPDF exportPdf = new ExportPDF(file);
 								ArrayList<String> words = new ArrayList<String>();	
@@ -990,11 +1179,9 @@ public class Main{
 								words.add(Integer.toString((int) MD_VP_to_spnr.getValue()));
 								words.add(Integer.toString((int) MD_VP_additional_spnr.getValue()));
 								words.add(Integer.toString((int) MD_VP_missing_spnr.getValue()));
-								if(MD_VP_group.getSelectedIndex()==2){
-									words.add(Integer.toString((int) MD_VP_gapSize_spnr.getValue()));
-								} else if(MD_VP_group.getSelectedIndex()==3){
-									words.add(Integer.toString((int) MD_VP_rWindowSize_spnr.getValue()));
-								}
+								words.add(Integer.toString((int) MD_VP_gapSize_spnr.getValue()));
+								words.add(Integer.toString((int) MD_VP_rWindowSize_spnr.getValue()));
+								
 								exportPdf.writeConstraints(words);
 								exportPdf.writeResults(results.size(), solve.getPdfOutput());
 								exportPdf.close();
@@ -1018,7 +1205,6 @@ public class Main{
 						fileChooser.setFileFilter(csvFilter);
 						if (fileChooser.showSaveDialog(fileChooser) == JFileChooser.APPROVE_OPTION) {
 							File file = new File(fileChooser.getSelectedFile().getAbsolutePath());
-							System.out.println(fileChooser.getSelectedFile());
 							try {
 								ExportCSV exportCsv = new ExportCSV(file);
 								for(int i=0; i<results.size(); i++){
@@ -1234,7 +1420,6 @@ public class Main{
 
 				public void run() { 
 					try {
-						System.out.println("computing");
 						MD_variables_panel.setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
 						MD_variables_panel.setEnabled(false);
 						MD_VP_progressBar.setString("Calculating...");
@@ -1260,7 +1445,7 @@ public class Main{
 								+ "</tr>"
 								+ "<tr>"
 								+ "<td> Number of results: " + results.size() + "</td>"
-								+ "<td> Time elapsed: " +  (double)(endTime-startTime)/1000000000.0 + "s" + "</td>"
+								+ "<td> Time elapsed: " + (double)Math.round((double)(endTime-startTime)/1000000000.0 * 10000d) / 10000d + "s" + "</td>"
 								+ "</tr>"
 								+ "<tr>"
 								+ "<td colspan='2'> Formulation: " + String.valueOf(MD_VP_group.getSelectedItem()) + "</td>"
@@ -1294,11 +1479,11 @@ public class Main{
 				}
 
 				private void done() {
-					System.out.println("Done");
 					MD_variables_panel.setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
 					MD_VP_progressBar.setString("Done!");
 					MD_VP_progressBar.setValue(100);
 					MD_VP_progressBar.setIndeterminate(false);
+					Toolkit.getDefaultToolkit().beep();
 				} });			
 			return null;
 		}

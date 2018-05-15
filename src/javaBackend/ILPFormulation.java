@@ -179,7 +179,11 @@ public class ILPFormulation {
 		//minimumCost = 0;
 
 		try {
-			for(int i=0; i<referenceGeneSet.size(); i++){
+			int counter = 0;
+			for(int i=0; i<referenceGeneSet.size() && referenceGeneSet.get(i).getStrSum() >= sizeRangeLower; i++){
+				counter++;
+				//MERON  159.170860044s Counter= 317
+				//WALA
 				StringBuilder obj = new StringBuilder("obj = c(");
 				StringBuilder mat = new StringBuilder("mat = matrix(c(");
 				StringBuilder dir = new StringBuilder("dir = c(");
@@ -190,7 +194,7 @@ public class ILPFormulation {
 				for(int j=0; j<intervals.size(); j++){
 					if(intervals.get(j).size() == 0){
 						results.clear(); 
-						getOutputString(solutions);
+						//getOutputString(solutions);
 						return results;
 					} 
 					for(int l=0; l<initial; l++){
@@ -269,7 +273,7 @@ public class ILPFormulation {
 				int cost = (int) Math.round(Double.parseDouble(c.eval(finalSb).asString()));
 
 				//System.out.println(cost);
-				if(cost < minimumCost){
+				if(cost < minimumCost && referenceGeneSet.get(i).getStrSum() >= sizeRangeLower){
 					minimumCost = cost;
 					results.clear();
 					solutions.clear();
@@ -277,7 +281,7 @@ public class ILPFormulation {
 					int[] solution = new int[referenceGeneSet.size()];
 					solution = c.eval("ilp$solution").asIntegers();
 					solutions.add(solution);
-				} else if(cost == minimumCost){
+				} else if(cost == minimumCost && referenceGeneSet.get(i).getStrSum() >= sizeRangeLower){
 					if(!results.contains(referenceGeneSet.get(i))){
 						results.add(referenceGeneSet.get(i));
 						int[] solution = new int[referenceGeneSet.size()];
@@ -286,16 +290,18 @@ public class ILPFormulation {
 					}
 				}
 			}
+			
+			System.out.println("Counter= " + counter);
 
 		} catch (Exception x) {
 			System.out.println("R code error: "+x.getMessage());
 		};
-
-		getOutputString(solutions);
+		//getOutputString(solutions);
 		return results;
 	}
 
 
+	/*
 	public ArrayList<GeneSet> solveRelax(RConnection c) throws RserveException, REXPMismatchException{
 		StringBuilder ilp = new StringBuilder("");
 		ilp.append("library(lpSolveAPI)\n");
@@ -306,7 +312,7 @@ public class ILPFormulation {
 		//minimumCost = 0;
 
 		try {
-			for(int i=0; i<referenceGeneSet.size(); i++){
+			for(int i=0; i<referenceGeneSet.size() && referenceGeneSet.get(i).getStrSum() >= sizeRangeLower; i++){
 				StringBuilder lpr = new StringBuilder("lpr = make.lp(0," + referenceGeneSet.size() + ")\n");
 				StringBuilder obj = new StringBuilder("set.objfn(lpr, c(" );
 				StringBuilder lpS = new StringBuilder("ilp = ");
@@ -323,7 +329,7 @@ public class ILPFormulation {
 
 					if(intervals.get(j).size() == 0){
 						results.clear(); 
-						getOutputString(solutions);
+						//getOutputString(solutions);
 						return results;
 					} 
 					for(int l=0; l<initial; l++){
@@ -418,18 +424,20 @@ public class ILPFormulation {
 			System.out.println("R code error: "+x.getMessage());
 		};
 
-		getOutputString(solutions);
+		//getOutputString(solutions);
 		return results;
 	}
+	*/
 
 	public String[] getAllResults(){
 		String[] res = new String[results.size()];
 		for(int i=0; i<results.size(); i++){
-			res[i] = results.get(i).toOrigString(); 
+			res[i] = results.get(i).getRefSetString(); 
 		}
 		return res;
 	}
-
+	
+	/*
 	private void getOutputString(ArrayList<int[]> solutions){
 		String all = "", format = "";
 		if(results.size() > 0){
@@ -463,7 +471,8 @@ public class ILPFormulation {
 		all = format + "\n" + all;
 		setOutput(all);
 	}
-
+	*/
+	
 	private ArrayList<String> compareGenes(ArrayList<String> x, ArrayList<String> genome){
 		ArrayList<String> res = new ArrayList<String>();
 		for(int i=0; i<x.size(); i++){
