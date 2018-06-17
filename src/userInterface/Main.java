@@ -59,18 +59,19 @@ import org.rosuda.REngine.REXPMismatchException;
 import org.rosuda.REngine.Rserve.RConnection;
 import org.rosuda.REngine.Rserve.RserveException;
 
-import componentActions.TabActions;
 import javaBackend.DataConverter;
 import javaBackend.ExportCSV;
 import javaBackend.ExportPDF;
 import javaBackend.GeneSet;
 import javaBackend.ILPFormulation;
-import messageDialogs.MessageDialog;
+import javaBackend.MessageDialog;
+import javaBackend.TabActions;
 import net.miginfocom.swing.MigLayout;
 import rBackend.RConnector;
 
 public class Main{
 	private int additionalGeneWeight, missingGeneWeight, sizeRangeLower, sizeRangeHigher, maxGapSize, rWindowSize;
+	private boolean isRelaxed;
 	private boolean basicFormulation, commonIntervals, maxGap, rWindows;
 	private DataConverter dc;
 	private ILPFormulation solve;
@@ -192,6 +193,13 @@ public class Main{
 	private JLabel IP_limitations_pic_label;
 	private JTextPane IP_limitations_name_lbl;
 	private Font fontTitleSmaller;
+	private SpinnerNumberModel MD_VP_additionalWeight_numberModel;
+	private SpinnerNumberModel MD_VP_missingWeight_numberModel;
+	private SpinnerNumberModel MD_VP_gapSize_numberModel;
+	private SpinnerNumberModel MD_VP_kSize_numberModel;
+	private JLabel MD_VP_linear_lbl;
+	private JTextPane MD_VP_linear_about;
+	private JComboBox<String> MD_VP_linear;
 	public Main() throws IOException{
 		this.setAdditionalGeneWeight(0);
 		this.setMissingGeneWeight(0);
@@ -208,7 +216,7 @@ public class Main{
 		fontButton = new Font("Dialog Input", Font.BOLD, 20);
 		fontText = new Font("Dialog Input", Font.PLAIN, 22);
 		fontPlain =  new Font("Dialog Input", Font.PLAIN, 16);
-		fontPlainSmall =  new Font("Dialog Input", Font.PLAIN, 14);
+		fontPlainSmall =  new Font("Dialog Input", Font.ITALIC, 14);
 		fontPlainBold =  new Font("Dialog Input", Font.BOLD, 18);
 		largeText = new Font("Dialog Input", Font.PLAIN, 22);
 
@@ -638,28 +646,6 @@ public class Main{
 				MD_IP_filename_text.setEditable(false);
 				MD_IP_filename_text.setBackground(backgroundColor);
 				
-				MD_IP_openFile_button.addActionListener(new ActionListener() {
-					public void actionPerformed(ActionEvent e) {
-						JFileChooser jfc = new JFileChooser();
-						jfc.setCurrentDirectory(new File(System.getProperty("user.dir")));
-						jfc.showDialog(null,"Please Select the File");
-						jfc.setVisible(true);
-						if(jfc.getSelectedFile()!=null){
-							MD_IP_filename = jfc.getSelectedFile();
-							MD_IP_filename_text.setText(MD_IP_filename.getAbsolutePath());
-
-							TaskConvert task = new TaskConvert();
-							try {
-								MD_input_progressBar.setIndeterminate(true);
-								task.doInBackground();
-							} catch (IOException e1) {
-								e1.printStackTrace();
-							}
-						}
-					}
-				});
-
-
 				MD_IP_preview = new JTextArea();
 				MD_IP_preview.setFont(fontPlain);
 				MD_IP_preview_scr = new JScrollPane(MD_IP_preview);
@@ -700,6 +686,27 @@ public class Main{
 				MD_input_progressBar.setBorderPainted(false);
 				MD_input_progressBar.setFont(fontPlainBold);
 				MD_input_progressBar.setStringPainted(true);
+				
+				MD_IP_openFile_button.addActionListener(new ActionListener() {
+					public void actionPerformed(ActionEvent e) {
+						JFileChooser jfc = new JFileChooser();
+						jfc.setCurrentDirectory(new File(System.getProperty("user.dir")));
+						jfc.showDialog(null,"Please Select the File");
+						jfc.setVisible(true);
+						if(jfc.getSelectedFile()!=null){
+							MD_IP_filename = jfc.getSelectedFile();
+							MD_IP_filename_text.setText(MD_IP_filename.getAbsolutePath());
+							
+							TaskConvert task = new TaskConvert();
+							try {
+								MD_input_progressBar.setIndeterminate(true);
+								task.doInBackground();
+							} catch (IOException e1) {
+								e1.printStackTrace();
+							}
+						}
+					}
+				});
 
 				MD_input_panel.add(label, "span");
 				MD_input_panel.add(MD_IP_about, "span");
@@ -787,9 +794,47 @@ public class Main{
 
 
 			MD_variables_panel = new JPanel();{
-				MD_variables_panel.setLayout(new MigLayout("insets 20, aligny 50%", "[grow]", "[grow]10[grow][grow]10[grow][fill]10[]"));
+				MD_variables_panel.setLayout(new MigLayout("insets 20, aligny 50%", "[150px, grow][150px, grow]", "[grow]10[grow][grow]10[grow][fill]10[]"));
 				MD_variables_panel.setBackground(backgroundColor);
+				
+				
+				MD_VP_linear_lbl = new JLabel();
+				MD_VP_linear_lbl.setFont(largeText);
+				MD_VP_linear_lbl.setText("Choose linear programming approach: ");
+				
+				MD_VP_linear_about = new JTextPane();
+				MD_VP_linear_about.setFont(fontPlainSmall);
+				MD_VP_linear_about.setBackground(panelColor);
+				MD_VP_linear_about.setMargin(new Insets(0,0,0,0));
+				MD_VP_linear_about.setEditable(false);
+				MD_VP_linear_about.setText("The programming approach defines whether the integrality constraint is relaxed or not. LP Relaxation fastens the process but does not guarantee the best clusters.");
 
+				String[] LP = {"Integer Linear Programming", "LP Relaxation"};
+				MD_VP_linear = new JComboBox<String>(LP);
+				MD_VP_linear.setBackground(Color.white);
+				MD_VP_linear.setFont(fontPlain);
+				MD_VP_linear.setSelectedItem(0);
+				
+				JPanel programming = new JPanel();
+				programming.setLayout(new MigLayout("", "[grow]", "[]5[grow]15[]"));
+				programming.setBackground(panelColor);
+				programming.add(MD_VP_linear_lbl, "grow, span");
+				programming.add(MD_VP_linear_about, "grow, span");
+				programming.add(MD_VP_linear, "grow, span, tag bottom");
+				
+				MD_VP_linear.addActionListener(new ActionListener(){
+
+					@Override
+					public void actionPerformed(ActionEvent arg0) {
+						if(MD_VP_linear.getSelectedIndex() == 0){
+							isRelaxed = false;
+						}
+						else isRelaxed = true;
+						
+					}
+					
+				});
+				
 				MD_VP_formulation_lbl = new JLabel();
 				MD_VP_formulation_lbl.setFont(largeText);
 				MD_VP_formulation_lbl.setText("Choose formulation to use: ");
@@ -810,14 +855,12 @@ public class Main{
 
 				JPanel formulation = new JPanel();
 				formulation.setBackground(panelColor);
-				formulation.setLayout(new MigLayout("aligny 50%", "[grow]", "[]5[]15[]"));
-				
+				formulation.setLayout(new MigLayout("aligny 50%", "[grow]", "[]5[grow]15[]"));
 				formulation.add(MD_VP_formulation_lbl, "grow, span");
 				formulation.add(MD_VP_formulation_about, "grow, span");
-				formulation.add(MD_VP_group, "grow, span");
+				formulation.add(MD_VP_group, "grow, span, tag bottom");
 				
-				ActionListener formulationListener = new ActionListener(){
-					@Override
+				MD_VP_group.addActionListener(new ActionListener(){
 					public void actionPerformed(ActionEvent e) {
 						MD_VP_from_spnr.setEnabled(true);
 						MD_VP_to_spnr.setEnabled(true);
@@ -865,9 +908,7 @@ public class Main{
 						}
 
 					}
-				};
-
-				MD_VP_group.addActionListener(formulationListener);
+				});
 				
 				MD_VP_constraints_lbl = new JLabel();
 				MD_VP_constraints_lbl.setText("Input constraints: ");
@@ -905,34 +946,37 @@ public class Main{
 				MD_VP_to_spnr = new JSpinner(MD_VP_to_numberModel);
 				MD_VP_to_spnr.setFont(fontPlain);
 
+				
 				MD_VP_additionalWeight_lbl = new JLabel();
 				MD_VP_additionalWeight_lbl.setText("Additional Gene Weight (w+) ");
 				MD_VP_additionalWeight_lbl.setFont(fontPlain);
 
-				MD_VP_additional_spnr = new JSpinner();
+				MD_VP_additionalWeight_numberModel = new SpinnerNumberModel(0, 0, 100, 1);
+				MD_VP_additional_spnr = new JSpinner(MD_VP_additionalWeight_numberModel);
 				MD_VP_additional_spnr.setFont(fontPlain);
 
 				MD_VP_missingWeight_lbl = new JLabel();
 				MD_VP_missingWeight_lbl.setText("Missing Gene Weight (w-)");
 				MD_VP_missingWeight_lbl.setFont(fontPlain);
 
-				MD_VP_missing_spnr = new JSpinner();
+				MD_VP_missingWeight_numberModel = new SpinnerNumberModel(0, 0, 100, 1);
+				MD_VP_missing_spnr = new JSpinner(MD_VP_missingWeight_numberModel);
 				MD_VP_missing_spnr.setFont(fontPlain);
 
+				MD_VP_gapSize_numberModel = new SpinnerNumberModel(0, 0, 100, 1);
 				MD_VP_gapSize_lbl = new JLabel();
 				MD_VP_gapSize_lbl.setText("Max Gap Size");
 				MD_VP_gapSize_lbl.setFont(fontPlain);
-
-				MD_VP_gapSize_spnr = new JSpinner();
+				MD_VP_gapSize_spnr = new JSpinner(MD_VP_gapSize_numberModel);
 				MD_VP_gapSize_spnr.setFont(fontPlain);
 
 				MD_VP_rWindowSize_Lbl = new JLabel();
 				MD_VP_rWindowSize_Lbl.setText("k Size");
 				MD_VP_rWindowSize_Lbl.setFont(fontPlain);
 
-				MD_VP_rWindowSize_spnr = new JSpinner();
+				MD_VP_kSize_numberModel = new SpinnerNumberModel(0, 0, 100, 1);
+				MD_VP_rWindowSize_spnr = new JSpinner(MD_VP_kSize_numberModel);
 				MD_VP_rWindowSize_spnr.setFont(fontPlain);
-
 				MD_VP_gapSize_spnr.setEnabled(false);
 				MD_VP_rWindowSize_spnr.setEnabled(false);
 
@@ -1036,16 +1080,14 @@ public class Main{
 						try {
 							MD_VP_progressBar.setIndeterminate(true);
 							task.doInBackground();
+							MD_results_list.addListSelectionListener(listener);
 						} catch (IOException e1) {
 							e1.printStackTrace();
 						}
-						
-						MD_results_list.addListSelectionListener(listener);
-						
 
 					}
 				});
-
+				MD_variables_panel.add(programming, "grow");
 				MD_variables_panel.add(formulation, "grow, span");
 				formulation_constraints_sep = new JSeparator();
 				MD_variables_panel.add(formulation_constraints_sep, "grow, span");
@@ -1066,7 +1108,7 @@ public class Main{
 			}
 
 			MD_results_panel = new JPanel();{
-				MD_results_panel.setLayout(new MigLayout("insets 20", "[grow]10[grow]", "[][grow]20[]10[]10[]"));
+				MD_results_panel.setLayout(new MigLayout("insets 20", "[grow]10[grow]", "[][150px, grow]20[]10[150px,grow]10[]"));
 				MD_results_panel.setBackground(backgroundColor);
 
 				MD_RP_results_lbl = new JLabel();
@@ -1092,8 +1134,6 @@ public class Main{
 				MD_results_list_scr = new JScrollPane(MD_results_list);
 				MD_results_list.setBackground(panelColor);
 				MD_results_list.setForeground(mainColor);
-				//MD_results_list_scr.setViewportBorder(null);
-				//MD_results_list_scr.setBorder(null);
 
 				MD_results_list_scr.setBorder(new CompoundBorder(new EmptyBorder(0, 0, 0, 0), new LineBorder(mainColor, 1)));
 
@@ -1109,6 +1149,7 @@ public class Main{
 				MD_RP_constraints_text.setBackground(Color.decode("#CCD6DD"));
 				MD_RP_constraints_text.setForeground(Color.white);
 				MD_RP_constraints_text.setBorder(new CompoundBorder(new EmptyBorder(0, 0, 0, 0), new LineBorder(mainColor, 1)));
+				MD_RP_constraints_text.setEditable(false);
 				
 
 				JPanel buttons = new JPanel();
@@ -1149,10 +1190,13 @@ public class Main{
 
 				MD_results_panel.add(MD_RP_results_lbl, "growx, span");
 				MD_results_panel.add(MD_results_list_scr, "grow, span");
+				
 				MD_results_panel.add(MD_RP_constraints_lbl, "growx");
 				MD_results_panel.add(MD_RP_positions_lbl, "growx, span");
+				
 				MD_results_panel.add(MD_RP_constraints_text, "grow");
 				MD_results_panel.add(MD_RP_results_scr, "grow, span");
+				
 				MD_results_panel.add(buttons, "growx, span");
 				MD_RP_exportPDF_btn.addActionListener(new ActionListener(){
 					public void actionPerformed(ActionEvent e){
@@ -1217,7 +1261,6 @@ public class Main{
 							} catch (IOException e1) {
 								e1.printStackTrace();
 							}
-							// save to file
 						}
 					}
 				});
@@ -1390,7 +1433,8 @@ public class Main{
 						} else {
 							MD_VP_group.removeItemAt(3);
 						}
-						this.done();
+						
+						done();
 					} catch (IOException e) {
 						e.printStackTrace();
 					}
@@ -1417,27 +1461,49 @@ public class Main{
 			Executor executor = java.util.concurrent.Executors.newSingleThreadExecutor();
 			((ExecutorService) executor).submit(new Runnable() {
 
-
 				public void run() { 
-					try {
-						MD_variables_panel.setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
-						MD_variables_panel.setEnabled(false);
-						MD_VP_progressBar.setString("Calculating...");
-						startTime = System.nanoTime();
+					MD_variables_panel.setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
+					MD_variables_panel.setEnabled(false);
+					MD_VP_progressBar.setString("Calculating...");
+					MD_VP_back_btn.setEnabled(false);
+					MD_VP_next_btn.setEnabled(false);
+					
+					startTime = System.nanoTime();
+					solve = new ILPFormulation(dc.getGenomes(), dc.getGenes(), dc.getMap(), isRelaxed, additionalGeneWeight, missingGeneWeight, sizeRangeLower, sizeRangeHigher, getMaxGapSize(), getrWindowSize(), isBasicFormulation(), isCommonIntervals(), isMaxGap(), isrWindows());
+					
+					if(!isRelaxed){
+						try {
+							solve.generateGeneSets();
+							results = new ArrayList<GeneSet>();
+							results = solve.solve(r);
+						} catch (RserveException | REXPMismatchException e) {
+							e.printStackTrace();
+						}
+					} else{
+						try {
+							solve.generateGeneSets();
+							results = new ArrayList<GeneSet>();
+							results = solve.solveRelax(r);
+						} catch (RserveException | REXPMismatchException e) {
+							e.printStackTrace();
+						}
+					}
+					int cost = solve.getMinimumCost();
+					endTime = System.nanoTime();
 
-						solve = new ILPFormulation(dc.getGenomes(), dc.getGenes(), dc.getMap(), additionalGeneWeight, missingGeneWeight, sizeRangeLower, sizeRangeHigher, getMaxGapSize(), getrWindowSize(), isBasicFormulation(), isCommonIntervals(), isMaxGap(), isrWindows());
-						solve.generateGeneSets();
-						results = new ArrayList<GeneSet>();
-						results = solve.solve(r);
-						endTime = System.nanoTime();
-						res = solve.getPositions();
 
-						
+					String fontfamily = MD_RP_constraints_text.getFont().getFamily();
+					if(results.size()>0){
+						if(!isRelaxed) res = solve.getPositions();
+						else res = solve.getPositionsRelaxed();
+						System.out.println("results length" + res.length);
 						MD_results_list.setListData(solve.getAllResults());
 						MD_results_list.setSelectedIndex(0);
-					
 						MD_RP_constraints_text.setFont(fontPlain);
-						String fontfamily = MD_RP_constraints_text.getFont().getFamily();
+						String LPformulation = "";
+						if(isRelaxed) LPformulation = "LP Relaxation cost: ";
+						else LPformulation = "ILP cost: ";
+						
 						MD_RP_constraints_text.setText(""
 								+ "<html><body><table style='font-family:"+fontfamily+";font-size: 12pt ;width: 100% ; border-spacing:0px ; padding:0px';>"
 								+ "<tr>"
@@ -1448,7 +1514,8 @@ public class Main{
 								+ "<td> Time elapsed: " + (double)Math.round((double)(endTime-startTime)/1000000000.0 * 10000d) / 10000d + "s" + "</td>"
 								+ "</tr>"
 								+ "<tr>"
-								+ "<td colspan='2'> Formulation: " + String.valueOf(MD_VP_group.getSelectedItem()) + "</td>"
+								+ "<td colspan> Formulation: " + String.valueOf(MD_VP_group.getSelectedItem()) + "</td>"
+								+ "<td colspan>" + LPformulation +  cost + "</td>"
 								+ "</tr>"
 								+ "<tr>"
 								+ "<td> D- = " + sizeRangeLower + "</td>"
@@ -1463,22 +1530,56 @@ public class Main{
 								+ "<td> k size = " + getrWindowSize() + "</td>"
 								+ "</tr>"
 								+ "</table></body></html>");
+						
 
-						mainDisplay_pane.setEnabledAt(0, false);
-						mainDisplay_pane.setEnabledAt(1, false);
-						mainDisplay_pane.setEnabledAt(2, false);
-						mainDisplay_pane.setEnabledAt(3, true);
-						mainDisplay_pane.setSelectedIndex(3);
-
-					} catch (RserveException e) {
-						e.printStackTrace();
-					} catch (REXPMismatchException e) {
-						e.printStackTrace();
+						MD_results_list.setEnabled(true);
+						MD_RP_exportCSV_btn.setEnabled(true);
+						MD_RP_exportPDF_btn.setEnabled(true);
+					} else{
+						String [] res = new String[1];
+						res[0] = "Nothing to show";
+						MD_results_list.setListData(res);
+						MD_results_list.setEnabled(false);
+						MD_RP_constraints_text.setText(""
+								+ "<html><body><table style='font-family:"+fontfamily+";font-size: 12pt ;width: 100% ; border-spacing:0px ; padding:0px';>"
+								+ "<tr>"
+								+ "<td colspan='2'> File location: " + MD_IP_filename.getAbsolutePath() + "</td>"
+								+ "</tr>"
+								+ "<tr>"
+								+ "<td colspan='2'> Number of results: 0 </td>"
+								+ "</tr>"
+								+ "<tr>"
+								+ "<td colspan ='2'> Formulation: " + String.valueOf(MD_VP_group.getSelectedItem()) + "</td>"
+								+ "</tr>"
+								+ "<tr>"
+								+ "<td> D- = " + sizeRangeLower + "</td>"
+								+ "<td> D+ = " + sizeRangeHigher + "</td>"
+								+ "</tr>"
+								+ "<tr>"
+								+ "<td> w- = " + missingGeneWeight + "</td>"
+								+ "<td> w+ = " + additionalGeneWeight + "</td>"
+								+ "</tr>"
+								+ "<tr>"
+								+ "<td> Gap size = " + getMaxGapSize() + "</td>"
+								+ "<td> k size = " + getrWindowSize() + "</td>"
+								+ "</tr>"
+								+ "</table></body></html>");
+						
+						MD_RP_results_text.setText("None");
+						MD_RP_exportCSV_btn.setEnabled(false);
+						MD_RP_exportPDF_btn.setEnabled(false);
 					}
+					mainDisplay_pane.setEnabledAt(0, false);
+					mainDisplay_pane.setEnabledAt(1, false);
+					mainDisplay_pane.setEnabledAt(2, false);
+					mainDisplay_pane.setEnabledAt(3, true);
+					mainDisplay_pane.setSelectedIndex(3);
 					done();
 				}
 
 				private void done() {
+					MD_VP_back_btn.setEnabled(true);
+					MD_VP_next_btn.setEnabled(true);
 					MD_variables_panel.setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
 					MD_VP_progressBar.setString("Done!");
 					MD_VP_progressBar.setValue(100);
@@ -1494,6 +1595,7 @@ public class Main{
 			Executor executor = java.util.concurrent.Executors.newSingleThreadExecutor();
 			((ExecutorService) executor).submit(new Runnable() {
 				public void run() { 
+					
 					homeScreen.setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
 					progressBar.setString("Loading dependencies...");
 					while(r==null){
@@ -1503,13 +1605,17 @@ public class Main{
 							if(r.eval("require('lpSolve') == FALSE").asString().equals("TRUE")){
 								System.out.println("Installing package...");
 								r.eval("install.packages('lpSolve')\n");
+								r.eval("install.packages('lpSolveAPI')\n");
+								
 							} else{
+								
+								
 								System.out.println("Package already installed. ");
 							}	
 						} catch (Exception x) {
 							System.out.println("R code error: "+x.getMessage());
 						}
-					}
+					} 
 					done();
 				}
 

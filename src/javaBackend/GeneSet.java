@@ -9,6 +9,7 @@ public class GeneSet {
 	private String strRep;
 	private int strSum;
 	private int positionStart;
+	private String strRepWithoutZero;
 
 	public GeneSet(ArrayList<Gene> genes, ArrayList<Gene> allGenes){
 		this.geneSet = genes;
@@ -78,22 +79,30 @@ public class GeneSet {
 
 	public void setStrRep(ArrayList<Gene> allGenes){
 		this.strRep = "";
+		this.strRepWithoutZero = "";
 		int strSum = 0;
 		for(int i=0; i<allGenes.size(); i++){
 			if(geneContent.contains(allGenes.get(i).getGeneNumberRep())){
 				this.strRep += "1,";
-				if(allGenes.get(i).getGeneNumberRep()!=0) strSum += 1;
+				if(i!=0) this.strRepWithoutZero += "1,";
+				if(allGenes.get(i).getGeneNumberRep() != 0) strSum += 1;
 			} else{
 				this.strRep += "0,";
+				if(i!=0) this.strRepWithoutZero += "0,";
 			}
 		}
 		
 		this.setStrSum(strSum);
 		this.strRep = this.strRep.substring(0, strRep.length() - 1);
+		this.strRepWithoutZero = this.strRepWithoutZero.substring(0, strRepWithoutZero.length() - 1);
 	}
 
 	public String toString(){
 		return strRep;
+	}
+	
+	public String toStringWithoutZero(){
+		return strRepWithoutZero;
 	}
 	
 	public String getRefSetString(){
