@@ -1,0 +1,8 @@
+<center><h2> LIMITATIONS </h2></center>
+<ol>
+	<li> The user can input data but homologs must already be represented similarly. </li>
+	<li> The input file must be in csv format where each row corresponds to one genome i.e. a row contains: species names, gene 1 name, gene 2 name up until gene n name. </li>
+	<li> It will not be able to identify the functional role of the gene cluster.</li>
+	<li> The values for the integer weights are valid and the size range for the reference genome does not exceed the size of the genome.</li>
+	<li> Correct gene clusters is guaranteed if input is correct.</li>
+</ol>

@@ -1,0 +1,19 @@
+<center><h2> HOW TO USE TOOL </h2></center>
+<b>Description</b><br>
+This tool uses Integer Linear Programming (ILP) in finding an optimal gene cluster provided a set of genomes and formulation
+constraints as input. It also allows the use of LP relaxation which speeds up the process a little although the corresponding results might not be the best given the input constraints. 
+
+<b>Input Constraints</b><br>
+The input constraints included are: <br>
+<ul>
+	<li>Formulation</li>
+	<li>Range</li>
+	<li>Weights for Additional and Missing Genes</li>
+	<li>Gap Size <i>(optional)</i></li>
+	<li>k Size <i>(optional)</i></li> 
+</ul> 
+
+The definition of each is in the <i>Data Constraints</i> tab. <br>
+
+The user provides an input CSV file and will be able to preview the transformed data. 
+The user will be able to change the define the formulation and input constraints and proceed in viewing the results.

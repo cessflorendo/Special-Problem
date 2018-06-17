@@ -1,0 +1,6 @@
+genome1,a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s
+genome2,a,b,c,d,e,k,l,m,n,p,q,s,o,i,j,h,g,d,f
+genome3,c,d,e,a,f,c,g,l,a,p,q,s,o,i,j,h,f,g,h
+genome4,h,i,j,k,l,a,b,e,f,g,l,m,n,o,r,s,q,p,o
+genome5,c,e,f,g,b,i,j,l,m,n,o,d,r,s,q,p,f,g,q
+genome6,b,c,d,e,a,l,m,n,o,q,r,a,h,i,j,k,m,n,e

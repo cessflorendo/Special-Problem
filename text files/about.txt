@@ -1,0 +1,6 @@
+<h2> ABOUT </h2>
+<b>InteGene</b> is an approximate gene cluster discovery tool that uses Integer Linear Programming. <br>
+The tool uses both Java and R. <br><br>
+
+InteGene V1.1 <br>
+All rights reserved. 2018. <br>

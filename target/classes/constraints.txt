@@ -1,0 +1,34 @@
+<center><h2> CONSTRAINTS </h2></center>
+<b>Data</b><br>
+	The data input must be a CSV file where the first value in each row are the genome names and the succeeding values in each row are the genes contained in the specific genome. 
+	<br>
+	For example, <br>
+	<center>
+		<i>genome1</i>, gene1, gene2, gene3, gene4, gene5 <br>
+		<i>genome2</i>, gene6, gene7, gene8, gene9, gene10 <br>
+	</center>
+<br><br>
+<b>Formulation</b><br>
+	The advantage of the ILP formulation presented in is the versatility of the objective function defined. The formulation is general in the sense that the constraints can be easily tweaked to find max-gap clusters, r-window clusters, and common intervals.<br><br>
+<i>General</i><br>
+	The general formulation finds the best gene clusters according to their costs and defined by the other constraints. Note that the <i> best </i> gene clusters may contain gaps, i.e. the cost function takes a non-zero value. <br><br>
+<i>Common Intervals</i><br>
+	Common intervals are cluster of genes occurring in several genomes that do not contain gaps. To model this, the cost function is restricted to take the value zero, i.e. additional genes and missing genes are not allowed, and the weights of additional genes and missing genes are <i>w+ = w- = 1</i>. <br><br>
+<i>Max-gap Clusters</i><br>
+	Max-gap clusters is characterized by having at most <i>D</i> genes in between genes from the reference set <i>X</i> i.e. for each subinterval of <i>Ji</i> of length <i>D + 1</i>, there must be at least one <i>X</i>-gene.<br><br>
+<i>r-window Clusters</i><br>
+	An <i>r</i>-window cluster is a pair of windows composed of <i>r</i> genes where at least <i>k</i> genes are shared between the two. To find <i>r</i>-window clusters for two genomes that share at least <i>D</i> genes, set <i>|X| = r</i>, <i>w- = 1</i>, <i>w+ = 0</i>, constrain the target function to zero, and demand that the number of similar genes in <i>X</i> and interval <i>J</i> is equal to <i>k</i>. <br><br>
+<br>
+
+<b>Size</b><br>
+	The size of the reference gene set <i>X</i> is constrained by the specific bounds [<i>D-</i>, <i>D+</i>], i.e. the number of genes in the reference gene set must not be less than D- and not be more than D+. <br><br>
+
+<b>Weights for Additional and Missing Genes</b><br>
+	The integer weights w- and w+ specify the costs of missing and additional gene/s in an interval, respectively. <br><br>
+	
+<b>Gap Size</b><br>
+	The gap size <i>g</i> is the at most number of genes than can be found in an interval that is not in the reference gene set <i>X</i>. <br><br>
+	
+<b>k Size</b><br>
+	<i>k</i> is the number of genes that must be shared by two genomes given an interval form each. <br>
+
